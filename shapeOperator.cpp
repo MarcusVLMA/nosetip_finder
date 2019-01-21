@@ -268,7 +268,7 @@ int main (int, char** argv)
             float k1 = principalCurvaturesCloud->points[i].pc1;
             float k2 = principalCurvaturesCloud->points[i].pc2;
 
-            if(k1*k2>0.005)
+            if(k1*k2>0.015)
             {
                 teste->push_back(cloudFinal->points[i]);
             }
@@ -337,7 +337,7 @@ int main (int, char** argv)
 
         if( arvoreKd.radiusSearch (crop_teste->points[i], 15, pointIdxRadiusSearch, pointRadiusSquaredDistance) > 0)
         {
-            if(pointIdxRadiusSearch.size() < 10)
+            if(pointIdxRadiusSearch.size() < 13)
             {
                 crop_teste->points.erase(crop_teste->points.begin() + i);
                 i = i-1;
@@ -348,7 +348,7 @@ int main (int, char** argv)
     std::cout << "Crop de Teste: " << crop_teste->points.size() << " pontos" << std::endl;
 
     pcl::PointCloud<pcl::PointXYZ>::Ptr noseInput (new pcl::PointCloud<pcl::PointXYZ>);
-    if(pcl::io::loadPCDFile<pcl::PointXYZ> ("199narizMenor.pcd", *noseInput) == -1) // load the file
+    if(pcl::io::loadPCDFile<pcl::PointXYZ> ("molde_nariz_verde.pcd", *noseInput) == -1) // load the file
     //if(pcl::io::loadPCDFile<pcl::PointXYZ> ("bs020.pcd", *noseInput) == -1) // load the file
     {
         PCL_ERROR ("Couldn't read file");
@@ -485,6 +485,9 @@ int main (int, char** argv)
 
         std::cout << file_name << std::endl;
         pcl::io::savePCDFile(file_name, *noseTipCloud);
+//        crop_teste->height = crop_teste->points.size();
+//        crop_teste->width = 1;
+//        pcl::io::savePCDFile("nariz_verde.pcd", *crop_teste);
 
         if (std::strcmp(argv[2], "visualizar") == 0)
         {
