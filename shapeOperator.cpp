@@ -17,7 +17,6 @@
 #include <pcl/filters/passthrough.h>
 #include <pcl/registration/icp.h>
 
-
 void scaleShapeIndexes(std::vector<float> &shapeIndexes)
 {
     float menor;
@@ -260,7 +259,7 @@ int main (int, char** argv)
     int fimComponente = -1;
 
     pcl::PointCloud<pcl::PointXYZ>::Ptr teste (new pcl::PointCloud<pcl::PointXYZ>);
-
+    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr principal_curvatures_teste (new pcl::PointCloud<pcl::PrincipalCurvatures> ());
     for (int i = 0; i < shapeIndexes.size(); i++)
     {
         if ((shapeIndexes[i] > std::atof(argv[3])) && (shapeIndexes[i] < std::atof(argv[4])))
@@ -271,15 +270,17 @@ int main (int, char** argv)
             if(k1*k2>0.015)
             {
                 teste->push_back(cloudFinal->points[i]);
+                principal_curvatures_teste->push_back(principalCurvaturesCloud->points[i]);
             }
         }
     }
-
+    std::cout << "Limites de Shape Index: " << std::atof(argv[3]) << " e " << std::atof(argv[4]) << std::endl;
     std::cout << "Teste: " << teste->points.size() << std::endl;
 
     pcl::KdTreeFLANN<pcl::PointXYZ> arvoreKd;
     arvoreKd.setInputCloud(teste);
     pcl::PointCloud<pcl::PointXYZ>::Ptr crop_teste (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr principal_curvatures_crop_teste (new pcl::PointCloud<pcl::PrincipalCurvatures> ());
     std::vector<int> pointIdxRadiusSearch;
     std::vector<float> pointRadiusSquaredDistance;
 
@@ -324,20 +325,21 @@ int main (int, char** argv)
                 for(int j = 0; j < pointIdxRadiusSearch.size(); j++)
                 {
                     crop_teste->points.push_back(teste->points[pointIdxRadiusSearch[j]]);
+                    principal_curvatures_crop_teste->points.push_back(principal_curvatures_teste->points[pointIdxRadiusSearch[j]]);
                 }
                 break;
             }
         }
     }
-
+    std::cout << "[Pré-Filtro]Crop de Teste: " << crop_teste->points.size() << " pontos" << std::endl;
     for(int i = 0; i < crop_teste->points.size(); i++)
     {
         pointIdxRadiusSearch.clear();
         pointRadiusSquaredDistance.clear();
 
-        if( arvoreKd.radiusSearch (crop_teste->points[i], 15, pointIdxRadiusSearch, pointRadiusSquaredDistance) > 0)
+        if( arvoreKd.radiusSearch (crop_teste->points[i], 7, pointIdxRadiusSearch, pointRadiusSquaredDistance) > 0)
         {
-            if(pointIdxRadiusSearch.size() < 13)
+            if(pointIdxRadiusSearch.size() < 10)
             {
                 crop_teste->points.erase(crop_teste->points.begin() + i);
                 i = i-1;
@@ -345,9 +347,31 @@ int main (int, char** argv)
         }
     }
 
-    std::cout << "Crop de Teste: " << crop_teste->points.size() << " pontos" << std::endl;
+    std::cout << "[Pós-Filtro]Crop de Teste: " << crop_teste->points.size() << " pontos" << std::endl;
+    pcl::PointXYZ centro;
+    pcl::PrincipalCurvatures pc_centro;
 
-    pcl::PointCloud<pcl::PointXYZ>::Ptr noseInput (new pcl::PointCloud<pcl::PointXYZ>);
+    for(int i = 0; i < crop_teste->points.size(); i++)
+    {
+        pcl::PrincipalCurvatures pc_iteration = principal_curvatures_crop_teste->points[i];
+
+        if(i == 0)
+        {
+            centro = crop_teste->points[0];
+            pc_centro = principal_curvatures_crop_teste->points[0];
+        }
+        else
+        {
+            if( (pc_centro.pc1*pc_centro.pc2) < (pc_iteration.pc1*pc_iteration.pc2) )
+            {
+                centro = crop_teste->points[i];
+                pc_centro = principal_curvatures_crop_teste->points[i];
+            }
+        }
+
+    }
+
+    /*pcl::PointCloud<pcl::PointXYZ>::Ptr noseInput (new pcl::PointCloud<pcl::PointXYZ>);
     if(pcl::io::loadPCDFile<pcl::PointXYZ> ("molde_nariz_verde.pcd", *noseInput) == -1) // load the file
     //if(pcl::io::loadPCDFile<pcl::PointXYZ> ("bs020.pcd", *noseInput) == -1) // load the file
     {
@@ -364,7 +388,7 @@ int main (int, char** argv)
     pcl::PointCloud<pcl::PointXYZ>::Ptr final (new pcl::PointCloud<pcl::PointXYZ>);
     icp.align(*final);
 
-    pcl::PointXYZ centro;
+
 
     for(int i = 0; i < final->points.size(); i++)
     {
@@ -378,7 +402,7 @@ int main (int, char** argv)
     centro.z = centro.z/(final->points.size());
 
     cloudFinal->points.push_back(centro);
-
+    */
     int indice = -1;
 
     for(int i = 0; i < cloudFinal->points.size(); i++)
@@ -395,149 +419,138 @@ int main (int, char** argv)
         return -1;
     }
 
-    arvoreKd.setInputCloud(teste);
+    //arvoreKd.setInputCloud(teste);
     pcl::PointCloud<pcl::PointXYZ>::Ptr nuvemDoRaio (new pcl::PointCloud<pcl::PointXYZ>);
-
-    if( arvoreKd.radiusSearch (cloudFinal->points[indice], 6, pointIdxRadiusSearch, pointRadiusSquaredDistance) > 0)
+    nuvemDoRaio->points.push_back(centro);
+    /*if( arvoreKd.radiusSearch (cloudFinal->points[indice], 6, pointIdxRadiusSearch, pointRadiusSquaredDistance) > 0)
     {
-        for(int j = 0; j < pointIdxRadiusSearch.size(); j++)
-        {
+        for (int j = 0; j < pointIdxRadiusSearch.size(); j++) {
             nuvemDoRaio->points.push_back(teste->points[pointIdxRadiusSearch[j]]);
         }
 
         pcl::PointXYZ noseTip;
 
-        for(int i = 0; i < nuvemDoRaio->points.size(); i++)
-        {
-            if(i == 0)
-            {
-                noseTip =  nuvemDoRaio->points[i];
-            }
-            else
-            {
-                if(noseTip.z < nuvemDoRaio->points[i].z)
-                {
+        for (int i = 0; i < nuvemDoRaio->points.size(); i++) {
+            if (i == 0) {
+                noseTip = nuvemDoRaio->points[i];
+            } else {
+                if (noseTip.z < nuvemDoRaio->points[i].z) {
                     noseTip = nuvemDoRaio->points[i];
                 }
             }
         }
+    }*/
+    //UTILIZADO PARA TESTES, QUANDO SE TEM AS MARCAÇÕES MANUAIS DO NARIZ
+    /*
+    double distance = sqrt( pow((noseTip.x - narizReal.x), 2) + pow((noseTip.y - narizReal.y), 2) + pow((noseTip.z - narizReal.z), 2) );
 
-        //UTILIZADO PARA TESTES, QUANDO SE TEM AS MARCAÇÕES MANUAIS DO NARIZ
-        /*
-        double distance = sqrt( pow((noseTip.x - narizReal.x), 2) + pow((noseTip.y - narizReal.y), 2) + pow((noseTip.z - narizReal.z), 2) );
-
-        if(distance > 15)
-        {
-            std::cout << "Nariz não encontrado na nuvem " << argv[1] << std::endl;
-            std::ofstream ofs;
-            ofs.open("PROBLEMAS_teste.txt", std::ios_base::app);
-            if(ofs.is_open())
-            {
-                ofs << argv[1] << std::endl;
-                ofs.close();
-            }
-            else
-            {
-                PCL_ERROR("NAO ABRIU");
-            }
-
-        }
-        */
+    if(distance > 15)
+    {
+        std::cout << "Nariz não encontrado na nuvem " << argv[1] << std::endl;
         std::ofstream ofs;
-        ofs.open("./resultados/RESULTADOS.txt", std::ios_base::app);
+        ofs.open("PROBLEMAS_teste.txt", std::ios_base::app);
         if(ofs.is_open())
         {
-            ofs << argv[1] << " " << noseTip << std::endl;
+            ofs << argv[1] << std::endl;
             ofs.close();
         }
         else
         {
             PCL_ERROR("NAO ABRIU");
         }
-        std::cout << "===================================" << std::endl;
 
-        pcl::PointCloud<pcl::PointXYZ>::Ptr noseTipCloud(new pcl::PointCloud<pcl::PointXYZ>);
+    }
+    */
+    std::ofstream ofs;
+    ofs.open("./resultados/RESULTADOS.txt", std::ios_base::app);
+    if(ofs.is_open())
+    {
+        ofs << argv[1] << " " << centro << std::endl;
+        ofs.close();
+    }
+    else
+    {
+        PCL_ERROR("NAO ABRIU");
+    }
+    std::cout << "===================================" << std::endl;
 
-        float bad_point = std::numeric_limits<float>::quiet_NaN();
-        pcl::PointXYZ nan_point = pcl::PointXYZ(bad_point,bad_point,bad_point);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr noseTipCloud(new pcl::PointCloud<pcl::PointXYZ>);
 
-        for(int i = 0; i <= 13; i++)
+    float bad_point = std::numeric_limits<float>::quiet_NaN();
+    pcl::PointXYZ nan_point = pcl::PointXYZ(bad_point,bad_point,bad_point);
+
+    for(int i = 0; i <= 13; i++)
+    {
+        if(i == 13)
         {
-            if(i == 13)
-            {
-                noseTipCloud->push_back(noseTip);
-            }
-            else
-            {
-                noseTipCloud->push_back(nan_point);
-            }
+            noseTipCloud->push_back(centro);
         }
-
-        std::string file_name = argv[1];
-        for(int l = file_name.size()-1; l > -1; l--)
+        else
         {
-            if(file_name[l] == '/')
-            {
-                file_name = "./resultados/nosetip_"+file_name.substr(l+1);
-                break;
-            }
+            noseTipCloud->push_back(nan_point);
         }
+    }
 
-        std::cout << file_name << std::endl;
-        pcl::io::savePCDFile(file_name, *noseTipCloud);
+    std::string file_name = argv[1];
+    for(int l = file_name.size()-1; l > -1; l--)
+    {
+        if(file_name[l] == '/')
+        {
+            file_name = "./resultados/nosetip_"+file_name.substr(l+1);
+            break;
+        }
+    }
+
+    std::cout << file_name << std::endl;
+    pcl::io::savePCDFile(file_name, *noseTipCloud);
 //        crop_teste->height = crop_teste->points.size();
 //        crop_teste->width = 1;
 //        pcl::io::savePCDFile("nariz_verde.pcd", *crop_teste);
 
-        if (std::strcmp(argv[2], "visualizar") == 0)
-        {
-            pcl::visualization::PCLVisualizer viewer;
-            pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> single_color(cloudFinal, 255, 0, 0);
-            viewer.addPointCloud<pcl::PointXYZ>(cloudFinal, single_color, "Nuvem", 0);
-            viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "Nuvem");
+    if (std::strcmp(argv[2], "visualizar") == 0)
+    {
+        pcl::visualization::PCLVisualizer viewer;
+        pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> single_color(cloudFinal, 255, 0, 0);
+        viewer.addPointCloud<pcl::PointXYZ>(cloudFinal, single_color, "Nuvem", 0);
+        viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "Nuvem");
 
-            std::cout << "NoseTip: " << noseTip << std::endl;
+        std::cout << "NoseTip: " << centro << std::endl;
 
-            pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> nuvemDoRaio_color(nuvemDoRaio, 255, 255, 255);
-            viewer.addPointCloud<pcl::PointXYZ>(nuvemDoRaio, nuvemDoRaio_color, "nuvemDoRaio", 0);
-            viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "nuvemDoRaio");
+        pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> nuvemDoRaio_color(nuvemDoRaio, 255, 255, 255);
+        viewer.addPointCloud<pcl::PointXYZ>(nuvemDoRaio, nuvemDoRaio_color, "nuvemDoRaio", 0);
+        viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "nuvemDoRaio");
 
-            pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> noseTipCloud_color(noseTipCloud, 255, 0, 255);
-            viewer.addPointCloud<pcl::PointXYZ>(noseTipCloud, noseTipCloud_color, "noseTipCloud", 0);
-            viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 9, "noseTipCloud");
+        pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> noseTipCloud_color(noseTipCloud, 255, 0, 255);
+        viewer.addPointCloud<pcl::PointXYZ>(noseTipCloud, noseTipCloud_color, "noseTipCloud", 0);
+        viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 9, "noseTipCloud");
 
 /*            viewer.addPointCloudPrincipalCurvatures<pcl::PointXYZ, pcl::Normal>(cloudFinal, cloudNormalFiltrada, principalCurvaturesCloud, 1, 10.0f, "principalCurvaturesCloud", 0);
-            viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 9, "principalCurvaturesCloud");
+        viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 9, "principalCurvaturesCloud");
 
-            pcl::PointCloud<pcl::PointXYZ>::Ptr narizRealCloud(new pcl::PointCloud<pcl::PointXYZ>);
-            narizRealCloud->push_back(narizReal);
+        pcl::PointCloud<pcl::PointXYZ>::Ptr narizRealCloud(new pcl::PointCloud<pcl::PointXYZ>);
+        narizRealCloud->push_back(narizReal);
 
-            pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> narizReal_color(narizRealCloud, 0, 255, 0);
-            viewer.addPointCloud<pcl::PointXYZ>(narizRealCloud, narizReal_color, "narizRealCloud", 0);
-            viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 11, "narizRealCloud");
+        pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> narizReal_color(narizRealCloud, 0, 255, 0);
+        viewer.addPointCloud<pcl::PointXYZ>(narizRealCloud, narizReal_color, "narizRealCloud", 0);
+        viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 11, "narizRealCloud");
 
-            pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> final_color(final, 255, 255, 0);
-            viewer.addPointCloud<pcl::PointXYZ> (final, final_color, "final", 0);
-            viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "final");
+        pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> final_color(final, 255, 255, 0);
+        viewer.addPointCloud<pcl::PointXYZ> (final, final_color, "final", 0);
+        viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "final");
 */
-            pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> second_color(teste, 0, 0, 255);
-            viewer.addPointCloud<pcl::PointXYZ>(teste, second_color, "teste", 0);
-            viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "teste");
+        pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> second_color(teste, 0, 0, 255);
+        viewer.addPointCloud<pcl::PointXYZ>(teste, second_color, "teste", 0);
+        viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "teste");
 
-            pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> crop_color(crop_teste, 0, 255, 0);
-            viewer.addPointCloud<pcl::PointXYZ>(crop_teste, crop_color, "crop_teste", 0);
-            viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "crop_teste");
+        pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> crop_color(crop_teste, 0, 255, 0);
+        viewer.addPointCloud<pcl::PointXYZ>(crop_teste, crop_color, "crop_teste", 0);
+        viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "crop_teste");
 
-            while (!viewer.wasStopped())
-            {
-                viewer.spinOnce(100);
-            }
+        while (!viewer.wasStopped())
+        {
+            viewer.spinOnce(100);
         }
     }
-
-
-
-
 
 
     return 0;
