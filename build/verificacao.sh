@@ -1,17 +1,24 @@
 #!/bin/bash
 
-mkdir resultados
-> ./resultados/RESULTADOS.txt
+path="./build/individuos_com_problemas/*"
+enableVisualization="nvisualizar"
+saveLocation="./resultados/"
+verifyPath=""
 
-#Exemplo: path="./voxelgrided_testes_FRGC/*"
-#         path="../nuvens/*
-#OBS: É importante ter '/*' no final para que se a lista de todos os arquivos no diretório.
+mkdir -p resultados
 
-path="./voxelgrided_testes_FRGC/*"
-
-#Para visualizar: enableVisualization="visualizar" ; Para não visualizar: enableVisualization="QUALQUER OUTRA COISA"
-enableVisualization="nao-visualizar"
-
-for file in $path; do
-	./shapeOperator $file $enableVisualization -50 -18 13
+for paste in $path; do
+	paste=$paste"/*"
+	for file in $paste; do
+		./build/nosetip_finder $file $saveLocation $enableVisualization
+	done
 done
+
+#for paste in $path; do
+#	paste=$paste"/*"
+#	for file in $paste; do
+#		verify=./build/BASE_ARTIFICIAL/LENDMARKS_OCCLUSIONS_NEUTRALS/${file:54}
+#		./build/nosetip_finder $file $enableVisualization $limite_menor $limite_maior $raio $raio_pc $verify
+#		let num=$num+1
+#	done
+#done
