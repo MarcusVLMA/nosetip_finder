@@ -10,18 +10,18 @@ void Computation::normalComputation(CloudXYZ::Ptr inputCloud, std::string radius
                                     float radiusOrK, CloudNormal::Ptr outputNormalCloud)
 {
     pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normalEstimation;
-    pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
+    pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
 
     normalEstimation.setInputCloud(inputCloud);
     normalEstimation.setSearchMethod(tree);
 
-    if(radiusOrKSearch == "radius")
+    if (radiusOrKSearch == "radius")
     {
         normalEstimation.setRadiusSearch(radiusOrK);
     }
     else
     {
-        if(radiusOrKSearch == "k")
+        if (radiusOrKSearch == "k")
         {
             normalEstimation.setKSearch(radiusOrK);
         }
@@ -38,23 +38,23 @@ void Computation::principalCurvaturesComputation(CloudXYZ::Ptr inputCloud,
                                                  CloudNormal::Ptr normalInputCloud,
                                                  std::string radiusOrKSearch, int radiusOrK,
                                                  CloudPC::Ptr
-                                                 outputPrincipalCurvaturesCloud)
+                                                     outputPrincipalCurvaturesCloud)
 {
     pcl::PrincipalCurvaturesEstimation<pcl::PointXYZ, pcl::Normal, pcl::PrincipalCurvatures> principalCurvaturesEstimation;
 
     principalCurvaturesEstimation.setInputCloud(inputCloud);
     principalCurvaturesEstimation.setInputNormals(normalInputCloud);
 
-    pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
+    pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
     principalCurvaturesEstimation.setSearchMethod(tree);
 
-    if(radiusOrKSearch == "radius")
+    if (radiusOrKSearch == "radius")
     {
         principalCurvaturesEstimation.setRadiusSearch(radiusOrK);
     }
     else
     {
-        if(radiusOrKSearch == "k")
+        if (radiusOrKSearch == "k")
         {
             principalCurvaturesEstimation.setKSearch(radiusOrK);
         }
@@ -68,30 +68,30 @@ void Computation::principalCurvaturesComputation(CloudXYZ::Ptr inputCloud,
 }
 
 void Computation::shapeIndexComputation(CloudPC::Ptr principalCurvaturesCloud,
-                                        std::vector<float>& outputShapeIndexes, std::vector<int>& nanIndices)
+                                        std::vector<float> &outputShapeIndexes, std::vector<int> &nanIndices)
 {
     float shapeIndex;
     float k1;
     float k2;
     float atg;
 
-    for(int i = 0; i < principalCurvaturesCloud->points.size(); i++)
+    for (int i = 0; i < principalCurvaturesCloud->points.size(); i++)
     {
         k1 = principalCurvaturesCloud->points[i].pc1;
         k2 = principalCurvaturesCloud->points[i].pc2;
 
         if (k1 >= k2)
         {
-            atg = atan((k2 + k1)/(k2 - k1));
-            shapeIndex = (2/M_PI)*(atg);
+            atg = atan((k2 + k1) / (k2 - k1));
+            shapeIndex = (2 / M_PI) * (atg);
         }
         else
         {
-            atg = atan((k1 + k2)/(k1 - k2));
-            shapeIndex = (2/M_PI)*(atg);
+            atg = atan((k1 + k2) / (k1 - k2));
+            shapeIndex = (2 / M_PI) * (atg);
         }
 
-        if(!isnan(shapeIndex))
+        if (!std::isnan(shapeIndex))
         {
             outputShapeIndexes.push_back(shapeIndex);
         }
@@ -106,13 +106,13 @@ float Computation::findMaxValueInPointCloud(CloudXYZ::Ptr inputCloud, char axis)
 {
     float maxValue;
 
-    if(axis == 'x')
+    if (axis == 'x')
     {
-        for(int i = 0; i < inputCloud->points.size(); i++)
+        for (int i = 0; i < inputCloud->points.size(); i++)
         {
-            if(i != 0)
+            if (i != 0)
             {
-                if(maxValue < inputCloud->points[i].x)
+                if (maxValue < inputCloud->points[i].x)
                 {
                     maxValue = inputCloud->points[i].x;
                 }
@@ -127,13 +127,13 @@ float Computation::findMaxValueInPointCloud(CloudXYZ::Ptr inputCloud, char axis)
     }
     else
     {
-        if(axis == 'y')
+        if (axis == 'y')
         {
-            for(int i = 0; i < inputCloud->points.size(); i++)
+            for (int i = 0; i < inputCloud->points.size(); i++)
             {
-                if(i != 0)
+                if (i != 0)
                 {
-                    if(maxValue < inputCloud->points[i].y)
+                    if (maxValue < inputCloud->points[i].y)
                     {
                         maxValue = inputCloud->points[i].y;
                     }
@@ -148,13 +148,13 @@ float Computation::findMaxValueInPointCloud(CloudXYZ::Ptr inputCloud, char axis)
         }
         else
         {
-            if(axis == 'z')
+            if (axis == 'z')
             {
-                for(int i = 0; i < inputCloud->points.size(); i++)
+                for (int i = 0; i < inputCloud->points.size(); i++)
                 {
-                    if(i != 0)
+                    if (i != 0)
                     {
-                        if(maxValue < inputCloud->points[i].z)
+                        if (maxValue < inputCloud->points[i].z)
                         {
                             maxValue = inputCloud->points[i].z;
                         }
@@ -181,13 +181,13 @@ float Computation::findMinValueInPointCloud(CloudXYZ::Ptr inputCloud, char axis)
 {
     float minValue;
 
-    if(axis == 'x')
+    if (axis == 'x')
     {
-        for(int i = 0; i < inputCloud->points.size(); i++)
+        for (int i = 0; i < inputCloud->points.size(); i++)
         {
-            if(i != 0)
+            if (i != 0)
             {
-                if(minValue > inputCloud->points[i].x)
+                if (minValue > inputCloud->points[i].x)
                 {
                     minValue = inputCloud->points[i].x;
                 }
@@ -202,13 +202,13 @@ float Computation::findMinValueInPointCloud(CloudXYZ::Ptr inputCloud, char axis)
     }
     else
     {
-        if(axis == 'y')
+        if (axis == 'y')
         {
-            for(int i = 0; i < inputCloud->points.size(); i++)
+            for (int i = 0; i < inputCloud->points.size(); i++)
             {
-                if(i != 0)
+                if (i != 0)
                 {
-                    if(minValue > inputCloud->points[i].y)
+                    if (minValue > inputCloud->points[i].y)
                     {
                         minValue = inputCloud->points[i].y;
                     }
@@ -223,13 +223,13 @@ float Computation::findMinValueInPointCloud(CloudXYZ::Ptr inputCloud, char axis)
         }
         else
         {
-            if(axis == 'z')
+            if (axis == 'z')
             {
-                for(int i = 0; i < inputCloud->points.size(); i++)
+                for (int i = 0; i < inputCloud->points.size(); i++)
                 {
-                    if(i != 0)
+                    if (i != 0)
                     {
-                        if(minValue < inputCloud->points[i].z)
+                        if (minValue < inputCloud->points[i].z)
                         {
                             minValue = inputCloud->points[i].z;
                         }
@@ -254,11 +254,10 @@ float Computation::findMinValueInPointCloud(CloudXYZ::Ptr inputCloud, char axis)
 
 std::vector<int> Computation::findKPointsWithLargestGaussianCurvatures(CloudXYZ &inputCloud,
                                                                        CloudPC
-                                                                               &inputPrincipalCurvaturesCloud,
+                                                                           &inputPrincipalCurvaturesCloud,
                                                                        int kPoints)
 {
     std::vector<int> largestGaussianCurvaturesIndices;
-
 
     return std::vector<int>();
 }
