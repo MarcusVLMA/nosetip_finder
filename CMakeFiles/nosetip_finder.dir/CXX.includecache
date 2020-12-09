@@ -6,13 +6,15 @@
 
 #IncludeRegexTransform: 
 
-/home/marcus/Desktop/UFC/LATIN/nosetip_finder/Computation.cpp
-pcl/features/normal_3d.h
+/home/marcus/Desktop/UFC/LATIN/nosetip_finder/CloudsLog.h
+string.h
 -
-pcl/features/principal_curvatures.h
+vector
 -
-Computation.h
-/home/marcus/Desktop/UFC/LATIN/nosetip_finder/Computation.h
+pcl/point_types.h
+-
+pcl/point_cloud.h
+-
 
 /home/marcus/Desktop/UFC/LATIN/nosetip_finder/Computation.h
 pcl/point_types.h
@@ -24,29 +26,11 @@ pcl/point_cloud.h
 pcl/search/kdtree.h
 -
 
-/home/marcus/Desktop/UFC/LATIN/nosetip_finder/Cropper.cpp
-Cropper.h
-/home/marcus/Desktop/UFC/LATIN/nosetip_finder/Cropper.h
-pcl/io/pcd_io.h
--
-pcl/kdtree/kdtree_flann.h
--
-
 /home/marcus/Desktop/UFC/LATIN/nosetip_finder/Cropper.h
 pcl/point_types.h
 -
 pcl/point_cloud.h
 -
-
-/home/marcus/Desktop/UFC/LATIN/nosetip_finder/NosetipFinder.cpp
-pcl/console/print.h
--
-pcl/kdtree/kdtree_flann.h
--
-pcl/io/pcd_io.h
--
-NosetipFinder.h
-/home/marcus/Desktop/UFC/LATIN/nosetip_finder/NosetipFinder.h
 
 /home/marcus/Desktop/UFC/LATIN/nosetip_finder/NosetipFinder.h
 pcl/point_types.h
@@ -91,6 +75,8 @@ Cropper.h
 /home/marcus/Desktop/UFC/LATIN/nosetip_finder/Cropper.h
 NosetipFinder.h
 /home/marcus/Desktop/UFC/LATIN/nosetip_finder/NosetipFinder.h
+CloudsLog.h
+/home/marcus/Desktop/UFC/LATIN/nosetip_finder/CloudsLog.h
 
 /usr/include/eigen3/Eigen/Cholesky
 Core

@@ -1,4 +1,5 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/nosetip_finder.dir/CloudsLog.cpp.o"
   "CMakeFiles/nosetip_finder.dir/Computation.cpp.o"
   "CMakeFiles/nosetip_finder.dir/Cropper.cpp.o"
   "CMakeFiles/nosetip_finder.dir/NosetipFinder.cpp.o"

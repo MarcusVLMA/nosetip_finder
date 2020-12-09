@@ -19,9 +19,12 @@
 #include "Computation.h"
 #include "Cropper.h"
 #include "NosetipFinder.h"
+#include "CloudsLog.h"
 
 int main(int, char **argv)
 {
+    CloudsLog cloudsLog;
+
     typedef pcl::PointCloud<pcl::PointXYZ> CloudXYZ;
     typedef pcl::PointCloud<pcl::Normal> CloudNormal;
     typedef pcl::PointCloud<pcl::PrincipalCurvatures> CloudPC;
@@ -38,9 +41,14 @@ int main(int, char **argv)
         PCL_ERROR("Couldn't read file");
         return (-1);
     }
+
+    cloudsLog.add("0. Loaded Cloud from PCD", cloud);
+
     //Removing NaNs
     std::vector<int> indices;
     pcl::removeNaNFromPointCloud(*cloud, *filteredCloud, indices);
+
+    cloudsLog.add("1. Loaded Cloud filtered from NaNs", filteredCloud);
 
     //Declaring Normal Clouds
     CloudNormal::Ptr normalCloud(new CloudNormal);
@@ -59,6 +67,8 @@ int main(int, char **argv)
      * so we keep in the XYZ Cloud only the indices which are present in Normal Cloud.
      */
     NosetipFinder::removeNonExistingIndices(filteredCloud, indices);
+
+    cloudsLog.add("2. Cloud after removing indices not present on Normal cloud", filteredCloud);
 
     //Declaring Principal Curvatures Cloud
     CloudPC::Ptr principalCurvaturesCloud(new CloudPC);
@@ -87,7 +97,7 @@ int main(int, char **argv)
     pointToCropFrom.y = (smallerY + largestY) / 2;
     pointToCropFrom.z = largestZ;
 
-    //Variables used to iterate and find a good crop
+    //Variables used to iterate and find a good cropprincipalCurvaturesComputation
     bool continueLoop = true;
     double gaussianCurvatureLimit = 0.015;
     double largestShapeIndexLimit = 0;
@@ -96,7 +106,7 @@ int main(int, char **argv)
     CloudPC::Ptr pcCloudAfterSIandGCfilter(new CloudPC);
     CloudXYZ::Ptr cloudAfterSIandGCfilter(new CloudXYZ);
 
-    //Vector to storage shape indexes AFTER applying filtering by Shape INdexes and Gaussian Curvature
+    //Vector to storage shape indexes AFTER applying filtering by Shape Indexes and Gaussian Curvature
     std::vector<float> shapeIndexAfterSIandGCfilter;
 
     //Principal Curvature and XYZ clouds used to storage points AFTER cropping
@@ -109,6 +119,8 @@ int main(int, char **argv)
 
     float cropSize = 100;
     //Iterating to find a good crop of points
+
+    int iterationCount = 0;
     while (continueLoop)
     {
         //Thresholding points by Shape Indexes and Gaussian Curvatures
@@ -133,10 +145,17 @@ int main(int, char **argv)
         }
         cloudAfterSIandGCfilter->points.push_back(pointToCropFrom);
 
+        std::string logLabel = "3." + std::to_string(iterationCount) + " Cloud after SI and GC filter";
+        cloudsLog.add(logLabel, cloudAfterSIandGCfilter);
+
         //Cropping the cloud using the point calculated early. The result cloud is in 'croppedSIandGC'
         Cropper::cropByPointValues(
             cloudAfterSIandGCfilter, pcCloudAfterSIandGCfilter, pointToCropFrom.x, pointToCropFrom.y, pointToCropFrom.z,
             "radius", cropSize, croppedSIandGC, croppedPCSIandGC, indexSearch, squaredDistanceSearch);
+
+        logLabel = "4." + std::to_string(iterationCount) + " Cloud after Crop";
+        cloudsLog.add(logLabel, croppedSIandGC);
+
         //Checking if there if enough points to continue
         if (croppedSIandGC->points.size() > 15)
         {
@@ -199,6 +218,7 @@ int main(int, char **argv)
     CloudPC::Ptr cloudPCFinal(new CloudPC);
 
     Cropper::removeIsolatedPoints(croppedSIandGC, croppedPCSIandGC, 5, 6, cloudFinal, cloudPCFinal);
+    cloudsLog.add("5. Cloud after removing isolated points", cloudFinal);
 
     pcl::PointXYZ noseTip;
 
@@ -209,7 +229,27 @@ int main(int, char **argv)
     std::cout << "==============================" << std::endl
               << std::endl;
 
-    NosetipFinder::saveNoseTip(noseTip, argv[2], argv[1]);
+    std::vector<CloudsLogEntry> cloudsLogEntries = cloudsLog.getLogs();
+    std::cout << "Amount of clouds in log: " << cloudsLogEntries.size() << std::endl;
+
+    for (int k = 0; k < cloudsLogEntries.size(); k++)
+    {
+        pcl::visualization::PCLVisualizer viewer;
+
+        pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> initialCloudColor(cloudsLogEntries[k].cloud, 255, 0, 0);
+        viewer.addPointCloud<pcl::PointXYZ>(cloudsLogEntries[k].cloud, initialCloudColor, "InitialCloud", 0);
+        viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "InitialCloud");
+
+        while (!viewer.wasStopped())
+        {
+            viewer.spinOnce(100);
+        }
+    }
+
+    if (argv[2])
+    {
+        NosetipFinder::saveNoseTip(noseTip, argv[2], argv[1]);
+    }
 
     if (strcmp(argv[3], "visualizar") == 0)
     {

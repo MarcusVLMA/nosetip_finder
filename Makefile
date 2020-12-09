@@ -123,6 +123,33 @@ nosetip_finder/fast:
 	$(MAKE) -f CMakeFiles/nosetip_finder.dir/build.make CMakeFiles/nosetip_finder.dir/build
 .PHONY : nosetip_finder/fast
 
+CloudsLog.o: CloudsLog.cpp.o
+
+.PHONY : CloudsLog.o
+
+# target to build an object file
+CloudsLog.cpp.o:
+	$(MAKE) -f CMakeFiles/nosetip_finder.dir/build.make CMakeFiles/nosetip_finder.dir/CloudsLog.cpp.o
+.PHONY : CloudsLog.cpp.o
+
+CloudsLog.i: CloudsLog.cpp.i
+
+.PHONY : CloudsLog.i
+
+# target to preprocess a source file
+CloudsLog.cpp.i:
+	$(MAKE) -f CMakeFiles/nosetip_finder.dir/build.make CMakeFiles/nosetip_finder.dir/CloudsLog.cpp.i
+.PHONY : CloudsLog.cpp.i
+
+CloudsLog.s: CloudsLog.cpp.s
+
+.PHONY : CloudsLog.s
+
+# target to generate assembly for a file
+CloudsLog.cpp.s:
+	$(MAKE) -f CMakeFiles/nosetip_finder.dir/build.make CMakeFiles/nosetip_finder.dir/CloudsLog.cpp.s
+.PHONY : CloudsLog.cpp.s
+
 Computation.o: Computation.cpp.o
 
 .PHONY : Computation.o
@@ -240,6 +267,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... nosetip_finder"
+	@echo "... CloudsLog.o"
+	@echo "... CloudsLog.i"
+	@echo "... CloudsLog.s"
 	@echo "... Computation.o"
 	@echo "... Computation.i"
 	@echo "... Computation.s"

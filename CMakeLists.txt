@@ -10,6 +10,6 @@ add_definitions(${PCL_DEFINITIONS})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/build")
 
-add_executable (nosetip_finder Computation.cpp Computation.h Cropper.cpp Cropper.h NosetipFinder.cpp NosetipFinder.h main.cpp)
+add_executable (nosetip_finder Computation.cpp Computation.h Cropper.cpp Cropper.h NosetipFinder.cpp NosetipFinder.h CloudsLog.cpp CloudsLog.h main.cpp)
 target_link_libraries (nosetip_finder ${PCL_LIBRARIES})
 
