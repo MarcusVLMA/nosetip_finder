@@ -4,8 +4,9 @@ file(REMOVE_RECURSE
   "CMakeFiles/nosetip_finder.dir/Cropper.cpp.o"
   "CMakeFiles/nosetip_finder.dir/NosetipFinder.cpp.o"
   "CMakeFiles/nosetip_finder.dir/main.cpp.o"
-  "build/nosetip_finder"
-  "build/nosetip_finder.pdb"
+  "CMakeFiles/nosetip_finder.dir/shapeOperator.cpp.o"
+  "build/Release/nosetip_finder.node"
+  "build/Release/nosetip_finder.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

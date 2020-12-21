@@ -9,6 +9,7 @@
 #include <vector>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
+#include <nan.h>
 
 struct CloudsLogEntry
 {
@@ -28,16 +29,7 @@ public:
   std::vector<CloudsLogEntry> getLogs();
   void setLogs(std::vector<CloudsLogEntry> newLogs);
   void add(std::string cloudLabel, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+  v8::Local<v8::Array> toV8Array();
 };
-
-// CloudsLog::CloudsLog()
-// {
-//   std::cout << "Initializing logs" << std::endl;
-
-//   // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
-//   // logs.push_back(">>>> Starting logs <<<<", cloud);
-// }
-
-// CloudsLog::~CloudsLog(){};
 
 #endif

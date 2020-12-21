@@ -258,6 +258,33 @@ main.cpp.s:
 	$(MAKE) -f CMakeFiles/nosetip_finder.dir/build.make CMakeFiles/nosetip_finder.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+shapeOperator.o: shapeOperator.cpp.o
+
+.PHONY : shapeOperator.o
+
+# target to build an object file
+shapeOperator.cpp.o:
+	$(MAKE) -f CMakeFiles/nosetip_finder.dir/build.make CMakeFiles/nosetip_finder.dir/shapeOperator.cpp.o
+.PHONY : shapeOperator.cpp.o
+
+shapeOperator.i: shapeOperator.cpp.i
+
+.PHONY : shapeOperator.i
+
+# target to preprocess a source file
+shapeOperator.cpp.i:
+	$(MAKE) -f CMakeFiles/nosetip_finder.dir/build.make CMakeFiles/nosetip_finder.dir/shapeOperator.cpp.i
+.PHONY : shapeOperator.cpp.i
+
+shapeOperator.s: shapeOperator.cpp.s
+
+.PHONY : shapeOperator.s
+
+# target to generate assembly for a file
+shapeOperator.cpp.s:
+	$(MAKE) -f CMakeFiles/nosetip_finder.dir/build.make CMakeFiles/nosetip_finder.dir/shapeOperator.cpp.s
+.PHONY : shapeOperator.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -282,6 +309,9 @@ help:
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... shapeOperator.o"
+	@echo "... shapeOperator.i"
+	@echo "... shapeOperator.s"
 .PHONY : help
 
 

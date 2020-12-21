@@ -16,12 +16,16 @@
 #include <pcl/features/principal_curvatures.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/filter.h>
+
+#include <nan.h>
+
 #include "Computation.h"
 #include "Cropper.h"
 #include "NosetipFinder.h"
 #include "CloudsLog.h"
+#include "Utils.h"
 
-int main(int, char **argv)
+NAN_METHOD(FindNoseTip)
 {
     CloudsLog cloudsLog;
 
@@ -29,7 +33,7 @@ int main(int, char **argv)
     typedef pcl::PointCloud<pcl::Normal> CloudNormal;
     typedef pcl::PointCloud<pcl::PrincipalCurvatures> CloudPC;
 
-    std::string filename = argv[1];
+    std::string filename(*Nan::Utf8String(info[0]));
 
     //Declaring clouds
     CloudXYZ::Ptr cloud(new CloudXYZ);
@@ -39,7 +43,8 @@ int main(int, char **argv)
     if (pcl::io::loadPCDFile(filename, *cloud) == -1)
     {
         PCL_ERROR("Couldn't read file");
-        return (-1);
+        info.GetReturnValue().Set(
+            Nan::New<v8::String>("Couldn't read file").ToLocalChecked());
     }
 
     cloudsLog.add("0. Loaded Cloud from PCD", cloud);
@@ -202,8 +207,9 @@ int main(int, char **argv)
                             {
                                 if (croppedSIandGC->points.empty())
                                 {
-                                    std::cout << "Não deu" << std::endl;
-                                    return (-1);
+                                    std::string returnString = "Couldn't set nosetip for this pointcloud";
+                                    info.GetReturnValue().Set(
+                                        Nan::New<v8::String>(returnString).ToLocalChecked());
                                 }
                                 continueLoop = false;
                             }
@@ -232,67 +238,93 @@ int main(int, char **argv)
     std::vector<CloudsLogEntry> cloudsLogEntries = cloudsLog.getLogs();
     std::cout << "Amount of clouds in log: " << cloudsLogEntries.size() << std::endl;
 
-    for (int k = 0; k < cloudsLogEntries.size(); k++)
-    {
-        pcl::visualization::PCLVisualizer viewer;
+    v8::Local<v8::Object> noseTipV8Object = Nan::New<v8::Object>();
+    noseTipV8Object->Set(Nan::New("x").ToLocalChecked(), Nan::New<v8::Number>(noseTip.x));
+    noseTipV8Object->Set(Nan::New("y").ToLocalChecked(), Nan::New<v8::Number>(noseTip.y));
+    noseTipV8Object->Set(Nan::New("z").ToLocalChecked(), Nan::New<v8::Number>(noseTip.z));
 
-        pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> initialCloudColor(cloudsLogEntries[k].cloud, 255, 0, 0);
-        viewer.addPointCloud<pcl::PointXYZ>(cloudsLogEntries[k].cloud, initialCloudColor, "InitialCloud", 0);
-        viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "InitialCloud");
+    v8::Local<v8::Object> response = Nan::New<v8::Object>();
+    response->Set(Nan::New("nosetip").ToLocalChecked(), noseTipV8Object);
+    response->Set(Nan::New("intermediary_clouds").ToLocalChecked(), cloudsLog.toV8Array());
 
-        while (!viewer.wasStopped())
-        {
-            viewer.spinOnce(100);
-        }
-    }
+    info.GetReturnValue().Set(response);
+    // for (int k = 0; k < cloudsLogEntries.size(); k++)
+    // {
+    //     pcl::visualization::PCLVisualizer viewer;
 
-    if (argv[2])
-    {
-        NosetipFinder::saveNoseTip(noseTip, argv[2], argv[1]);
-    }
+    //     pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> initialCloudColor(cloudsLogEntries[k].cloud, 255, 0, 0);
+    //     viewer.addPointCloud<pcl::PointXYZ>(cloudsLogEntries[k].cloud, initialCloudColor, "InitialCloud", 0);
+    //     viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "InitialCloud");
 
-    if (strcmp(argv[3], "visualizar") == 0)
-    {
-        pcl::visualization::PCLVisualizer viewer;
+    //     while (!viewer.wasStopped())
+    //     {
+    //         viewer.spinOnce(100);
+    //     }
+    // }
 
-        pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> initialCloudColor(filteredCloud, 255, 0, 0);
-        viewer.addPointCloud<pcl::PointXYZ>(filteredCloud, initialCloudColor, "InitialCloud", 0);
-        viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "InitialCloud");
+    // if (argv[2])
+    // {
+    //     NosetipFinder::saveNoseTip(noseTip, argv[2], argv[1]);
+    // }
 
-        pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> cloudColor(cloudFinal, 125, 125, 125);
-        viewer.addPointCloud<pcl::PointXYZ>(cloudFinal, cloudColor, "Cloud", 0);
-        viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "Cloud");
+    // if (strcmp(argv[3], "visualizar") == 0)
+    // {
+    //     pcl::visualization::PCLVisualizer viewer;
 
-        pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> noseTipColor(noseTipCloud, 0, 255, 0);
-        viewer.addPointCloud<pcl::PointXYZ>(noseTipCloud, noseTipColor, "NoseTip", 0);
-        viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 9, "NoseTip");
+    //     pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> initialCloudColor(filteredCloud, 255, 0, 0);
+    //     viewer.addPointCloud<pcl::PointXYZ>(filteredCloud, initialCloudColor, "InitialCloud", 0);
+    //     viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "InitialCloud");
 
-        while (!viewer.wasStopped())
-        {
-            viewer.spinOnce(100);
-        }
-    }
+    //     pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> cloudColor(cloudFinal, 125, 125, 125);
+    //     viewer.addPointCloud<pcl::PointXYZ>(cloudFinal, cloudColor, "Cloud", 0);
+    //     viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "Cloud");
 
-    if (argv[4])
-    {
-        std::cout << "Reading " << argv[3] << " to verify nosetip." << std::endl;
+    //     pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> noseTipColor(noseTipCloud, 0, 255, 0);
+    //     viewer.addPointCloud<pcl::PointXYZ>(noseTipCloud, noseTipColor, "NoseTip", 0);
+    //     viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 9, "NoseTip");
 
-        CloudXYZ::Ptr verifyCloud(new CloudXYZ);
+    //     while (!viewer.wasStopped())
+    //     {
+    //         viewer.spinOnce(100);
+    //     }
+    // }
 
-        if (pcl::io::loadPCDFile(argv[3], *verifyCloud) == -1)
-        {
-            PCL_ERROR("Couldn't read verification file");
-            return (-1);
-        }
+    // if (argv[4])
+    // {
+    //     std::cout << "Reading " << argv[3] << " to verify nosetip." << std::endl;
 
-        if (
-            NosetipFinder::itsAGoodNoseTip(noseTip, verifyCloud->points[13].x, verifyCloud->points[13].y, verifyCloud->points[13].z, 15))
-        {
-            std::cout << "It's a good nose tip" << std::endl;
-        }
-        else
-        {
-            std::cout << "It is not a good nose tip" << std::endl;
-        }
-    }
+    //     CloudXYZ::Ptr verifyCloud(new CloudXYZ);
+
+    //     if (pcl::io::loadPCDFile(argv[3], *verifyCloud) == -1)
+    //     {
+    //         PCL_ERROR("Couldn't read verification file");
+    //         return (-1);
+    //     }
+
+    //     if (
+    //         NosetipFinder::itsAGoodNoseTip(noseTip, verifyCloud->points[13].x, verifyCloud->points[13].y, verifyCloud->points[13].z, 15))
+    //     {
+    //         std::cout << "It's a good nose tip" << std::endl;
+    //     }
+    //     else
+    //     {
+    //         std::cout << "It is not a good nose tip" << std::endl;
+    //     }
+    // }
 }
+
+using Nan::GetFunction;
+using Nan::New;
+using Nan::Set;
+using v8::FunctionTemplate;
+using v8::Handle;
+using v8::Object;
+using v8::String;
+
+NAN_MODULE_INIT(init)
+{
+    Set(target, New<String>("findNoseTip").ToLocalChecked(),
+        GetFunction(New<FunctionTemplate>(FindNoseTip)).ToLocalChecked());
+}
+
+NODE_MODULE(nosetip_finder, init)
