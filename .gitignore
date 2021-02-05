@@ -1,5 +1,6 @@
 node_modules
 build
+.vscode
 
 # Compiled Object files
 **/.DS_Store
