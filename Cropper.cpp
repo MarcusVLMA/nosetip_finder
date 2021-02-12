@@ -58,7 +58,7 @@ void Cropper::cropByPointIndex(CloudXYZ::ConstPtr &inputCloud,
         }
         else
         {
-            PCL_ERROR("Use only 'radius' or 'k' in cropByPointIndex");
+            throw std::runtime_error("Use only 'radius' or 'k' in cropByPointIndex");
             return;
         }
     }
@@ -105,7 +105,7 @@ void Cropper::cropByPointValues(CloudXYZ::Ptr &inputCloud,
 
     if (pointIndex == -1)
     {
-        PCL_ERROR("This point doesn't exist on Input Cloud, please insert on it.");
+        throw std::runtime_error("This point doesn't exist on Input Cloud, please insert on it.");
         return;
     }
 
@@ -135,7 +135,7 @@ void Cropper::cropByPointValues(CloudXYZ::Ptr &inputCloud,
         }
         else
         {
-            PCL_ERROR("Use only 'radius' or 'k' in cropByPointIndex");
+            throw std::runtime_error("Use only 'radius' or 'k' in cropByPointIndex");
             return;
         }
     }

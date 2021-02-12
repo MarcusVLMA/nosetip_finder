@@ -3,6 +3,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/nosetip_finder.dir/Computation.cpp.o"
   "CMakeFiles/nosetip_finder.dir/Cropper.cpp.o"
   "CMakeFiles/nosetip_finder.dir/NosetipFinder.cpp.o"
+  "CMakeFiles/nosetip_finder.dir/Utils.cpp.o"
   "CMakeFiles/nosetip_finder.dir/main.cpp.o"
   "build/nosetip_finder"
   "build/nosetip_finder.pdb"

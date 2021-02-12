@@ -27,7 +27,7 @@ void Computation::normalComputation(CloudXYZ::Ptr inputCloud, std::string radius
         }
         else
         {
-            PCL_ERROR("Use 'radius' or 'k' in normalComputation");
+            throw std::runtime_error("Use 'radius' or 'k' in normalComputation");
         }
     }
 
@@ -60,7 +60,7 @@ void Computation::principalCurvaturesComputation(CloudXYZ::Ptr inputCloud,
         }
         else
         {
-            PCL_ERROR("Use 'radius' or 'k' in principalCurvaturesComputation");
+            throw std::runtime_error("Use 'radius' or 'k' in principalCurvaturesComputation");
         }
     }
 
@@ -68,7 +68,7 @@ void Computation::principalCurvaturesComputation(CloudXYZ::Ptr inputCloud,
 }
 
 void Computation::shapeIndexComputation(CloudPC::Ptr principalCurvaturesCloud,
-                                        std::vector<float> &outputShapeIndexes, std::vector<int> &nanIndices)
+                                        std::vector<float> &outputShapeIndexes, std::vector<int> &notNaNIndices)
 {
     float shapeIndex;
     float k1;
@@ -94,10 +94,7 @@ void Computation::shapeIndexComputation(CloudPC::Ptr principalCurvaturesCloud,
         if (!std::isnan(shapeIndex))
         {
             outputShapeIndexes.push_back(shapeIndex);
-        }
-        else
-        {
-            nanIndices.push_back(i);
+            notNaNIndices.push_back(i);
         }
     }
 }
@@ -169,7 +166,7 @@ float Computation::findMaxValueInPointCloud(CloudXYZ::Ptr inputCloud, char axis)
             }
             else
             {
-                PCL_ERROR("Use 'x', 'y' or 'z' in findMaxValueInPointCloud");
+                throw std::runtime_error("Use 'x', 'y' or 'z' in findMaxValueInPointCloud");
             }
         }
     }
@@ -244,7 +241,7 @@ float Computation::findMinValueInPointCloud(CloudXYZ::Ptr inputCloud, char axis)
             }
             else
             {
-                PCL_ERROR("Use 'x', 'y' or 'z' in findMaxValueInPointCloud");
+                throw std::runtime_error("Use 'x', 'y' or 'z' in findMaxValueInPointCloud");
             }
         }
     }

@@ -8,6 +8,7 @@ set(CMAKE_DEPENDS_CHECK_CXX
   "/home/marcus/Desktop/UFC/LATIN/nosetip_finder/Computation.cpp" "/home/marcus/Desktop/UFC/LATIN/nosetip_finder/CMakeFiles/nosetip_finder.dir/Computation.cpp.o"
   "/home/marcus/Desktop/UFC/LATIN/nosetip_finder/Cropper.cpp" "/home/marcus/Desktop/UFC/LATIN/nosetip_finder/CMakeFiles/nosetip_finder.dir/Cropper.cpp.o"
   "/home/marcus/Desktop/UFC/LATIN/nosetip_finder/NosetipFinder.cpp" "/home/marcus/Desktop/UFC/LATIN/nosetip_finder/CMakeFiles/nosetip_finder.dir/NosetipFinder.cpp.o"
+  "/home/marcus/Desktop/UFC/LATIN/nosetip_finder/Utils.cpp" "/home/marcus/Desktop/UFC/LATIN/nosetip_finder/CMakeFiles/nosetip_finder.dir/Utils.cpp.o"
   "/home/marcus/Desktop/UFC/LATIN/nosetip_finder/main.cpp" "/home/marcus/Desktop/UFC/LATIN/nosetip_finder/CMakeFiles/nosetip_finder.dir/main.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")

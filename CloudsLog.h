@@ -30,14 +30,4 @@ public:
   void add(std::string cloudLabel, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
 };
 
-// CloudsLog::CloudsLog()
-// {
-//   std::cout << "Initializing logs" << std::endl;
-
-//   // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
-//   // logs.push_back(">>>> Starting logs <<<<", cloud);
-// }
-
-// CloudsLog::~CloudsLog(){};
-
 #endif

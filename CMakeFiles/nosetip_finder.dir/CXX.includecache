@@ -40,6 +40,14 @@ pcl/point_cloud.h
 vector
 -
 
+/home/marcus/Desktop/UFC/LATIN/nosetip_finder/Utils.h
+string.h
+-
+pcl/point_types.h
+-
+pcl/point_cloud.h
+-
+
 /home/marcus/Desktop/UFC/LATIN/nosetip_finder/main.cpp
 iostream
 -
@@ -50,6 +58,8 @@ cmath
 string.h
 -
 fstream
+-
+chrono
 -
 pcl/io/pcd_io.h
 -
@@ -77,6 +87,8 @@ NosetipFinder.h
 /home/marcus/Desktop/UFC/LATIN/nosetip_finder/NosetipFinder.h
 CloudsLog.h
 /home/marcus/Desktop/UFC/LATIN/nosetip_finder/CloudsLog.h
+Utils.h
+/home/marcus/Desktop/UFC/LATIN/nosetip_finder/Utils.h
 
 /usr/include/eigen3/Eigen/Cholesky
 Core
