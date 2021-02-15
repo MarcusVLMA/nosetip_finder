@@ -9,24 +9,37 @@
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 
+typedef pcl::PointCloud<pcl::PointXYZ> CloudXYZ;
+typedef pcl::PointCloud<pcl::Normal> CloudNormal;
+typedef pcl::PointCloud<pcl::PrincipalCurvatures> CloudPC;
+
 class Utils
 {
 public:
-  Utils(){};
-  ~Utils(){};
+    Utils(){};
+    ~Utils(){};
 
-  void static saveProcessingResult(
-      std::string outputFilename,
-      std::string inputCloudFilename,
-      bool isAGoodNoseTip,
-      double totalMilliseconds,
-      pcl::PointXYZ originalNoseTip,
-      pcl::PointXYZ foundNoseTip);
+    CloudXYZ::Ptr static loadCloudFile(std::string filename);
 
-  void static saveErrorResult(
-      std::string outputFilename,
-      std::string inputCloudFilename,
-      std::exception error);
+    void static saveProcessingResult(
+        std::string outputFilename,
+        std::string inputCloudFilename,
+        bool isAGoodNoseTip,
+        double totalMilliseconds,
+        pcl::PointXYZ originalNoseTip,
+        pcl::PointXYZ foundNoseTip);
+
+    void static saveProcessingResult(
+        std::string outputFilename,
+        std::string inputCloudFilename,
+        bool isAGoodNoseTip,
+        double totalMilliseconds,
+        pcl::PointXYZ foundNoseTip);
+
+    void static saveErrorResult(
+        std::string outputFilename,
+        std::string inputCloudFilename,
+        std::string error);
 };
 
 #endif

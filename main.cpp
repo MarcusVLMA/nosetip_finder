@@ -38,16 +38,13 @@ int main(int, char **argv)
 
         //Declaring clouds
         CloudXYZ::Ptr cloud(new CloudXYZ);
-        CloudXYZ::Ptr filteredCloud(new CloudXYZ);
+
         std::cout << "Reading " << filename << std::endl;
-        //Loading PCD file to cloud
-        if (pcl::io::loadPCDFile(filename, *cloud) == -1)
-        {
-            throw std::runtime_error("Couldn't read file");
-            return (-1);
-        }
+        cloud = Utils::loadCloudFile(filename);
 
         cloudsLog.add("0. Loaded Cloud from PCD", cloud);
+
+        CloudXYZ::Ptr filteredCloud(new CloudXYZ);
 
         //Removing NaNs
         std::vector<int> indices;
@@ -114,7 +111,7 @@ int main(int, char **argv)
         //Variables used to iterate and find a good cropprincipalCurvaturesComputation
         bool continueLoop = true;
         double gaussianCurvatureLimit = 0.015; //0.015
-        double largestShapeIndexLimit = -0.7;  // -0.7
+        double largestShapeIndexLimit = -0.75; // -0.7
 
         //Principal Curvature and XYZ clouds used to storage points AFTER filtering though Gaussian Curvature and Shape Index
         CloudPC::Ptr pcCloudAfterSIandGCfilter(new CloudPC);
@@ -308,13 +305,13 @@ int main(int, char **argv)
             }
         }
 
-        if (argv[4] && argv[5])
+        if (argv[4] && argv[5] && argv[6])
         {
             std::cout << "Reading " << argv[4] << " to verify nosetip." << std::endl;
 
-            CloudXYZ::Ptr nosetipCloud(new CloudXYZ);
+            CloudXYZ::Ptr verificationCloud(new CloudXYZ);
 
-            if (pcl::io::loadPCDFile(argv[4], *nosetipCloud) == -1)
+            if (pcl::io::loadPCDFile(argv[4], *verificationCloud) == -1)
             {
                 throw std::runtime_error("Couldn't read verification file");
                 return (-1);
@@ -323,7 +320,7 @@ int main(int, char **argv)
             bool isAGoodNoseTip;
 
             if (
-                NosetipFinder::itsAGoodNoseTip(noseTip, nosetipCloud->points[0].x, nosetipCloud->points[0].y, nosetipCloud->points[0].z, 20))
+                NosetipFinder::itsAGoodNoseTip(noseTip, verificationCloud->points[0].x, verificationCloud->points[0].y, verificationCloud->points[0].z, 20))
             {
                 std::cout << "It's a good nose tip" << std::endl;
                 isAGoodNoseTip = true;
@@ -339,13 +336,33 @@ int main(int, char **argv)
                 argv[1],
                 isAGoodNoseTip,
                 std::chrono::duration<double, std::milli>(totalDiff).count(),
-                nosetipCloud->points[0],
+                verificationCloud->points[0],
+                noseTip);
+        }
+        else if (strcmp(argv[3], "visualizar") == 0)
+        {
+            std::string resp;
+            std::cout << "It's a good nose tip? Y/N" << std::endl;
+            std::cin >> resp;
+
+            bool boolResp = false;
+            if (resp == "y" || resp == "Y")
+            {
+                boolResp = true;
+            }
+
+            Utils::saveProcessingResult(
+                argv[4],
+                argv[1],
+                boolResp,
+                std::chrono::duration<double, std::milli>(totalDiff).count(),
                 noseTip);
         }
     }
     catch (std::exception &e)
     {
-        std::cout << e.what() << std::endl;
-        Utils::saveErrorResult(argv[6], argv[1], e);
+        std::string errorCause = e.what();
+        std::cout << errorCause << std::endl;
+        Utils::saveErrorResult(argv[6], argv[1], errorCause);
     }
 }
