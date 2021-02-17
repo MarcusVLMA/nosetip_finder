@@ -54,6 +54,8 @@ public:
     bool static itsAGoodNoseTip(pcl::PointXYZ noseTip, float xValue, float yValue, float zValue, float maxDistance);
 
     bool static saveNoseTip(pcl::PointXYZ noseTip, std::string filename, std::string cloudName);
+
+    int static findNosetip(int argc, char **argv);
 };
 
 #endif //NOSETIP_FINDER_NOSETIPFINDER_H
