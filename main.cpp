@@ -111,7 +111,7 @@ int main(int, char **argv)
         //Variables used to iterate and find a good cropprincipalCurvaturesComputation
         bool continueLoop = true;
         double gaussianCurvatureLimit = 0.015; //0.015
-        double largestShapeIndexLimit = -0.75; // -0.7
+        double largestShapeIndexLimit = -0.85; // -0.7
 
         //Principal Curvature and XYZ clouds used to storage points AFTER filtering though Gaussian Curvature and Shape Index
         CloudPC::Ptr pcCloudAfterSIandGCfilter(new CloudPC);
