@@ -25,18 +25,43 @@ int main(int, char **argv)
 {
     try
     {
-        struct MainResponse response = Main::run(argv[1]);
+        std::string filename = argv[1];
+        bool flexibilizeThresholds = (argv[2] == "true");
+        bool flexibilizeCrop = (argv[3] == "true");
+        int computationRadiusOrKSize = std::stoi(argv[4]);
+        std::string computationMethod = argv[5];
+        double minGaussianCurvature = std::stod(argv[6]);
+        double shapeIndexLimit = std::stod(argv[7]);
+        float minCropSize = std::stof(argv[8]);
+        float maxCropSize = std::stof(argv[9]);
+        int minPointsToContinue = std::stoi(argv[10]);
+        float removeIsolatedPointsRadius = std::stof(argv[11]);
+        int removeIsolatedPointsThreshold = std::stoi(argv[12]);
+
+        struct MainResponse response = Main::run(
+            filename,
+            flexibilizeThresholds,
+            flexibilizeCrop,
+            computationRadiusOrKSize,
+            computationMethod,
+            minGaussianCurvature,
+            shapeIndexLimit,
+            minCropSize,
+            maxCropSize,
+            minPointsToContinue,
+            removeIsolatedPointsRadius,
+            removeIsolatedPointsThreshold);
 
         pcl::PointXYZ noseTip = response.noseTip;
         std::vector<CloudsLogEntry> cloudsLogEntries = response.cloudsLog.getLogs();
         double executionTime = response.executionTime;
 
-        if (argv[2])
+        if (argv[13])
         {
-            NosetipFinder::saveNoseTip(noseTip, argv[2], argv[1]);
+            NosetipFinder::saveNoseTip(noseTip, argv[13], filename);
         }
 
-        if (strcmp(argv[3], "visualizar") == 0)
+        if (strcmp(argv[14], "visualizar") == 0)
         {
             pcl::visualization::PCLVisualizer viewer;
             for (int k = 0; k < cloudsLogEntries.size(); k++)
@@ -67,7 +92,7 @@ int main(int, char **argv)
             }
         }
 
-        if (argv[4] && argv[5] && argv[6])
+        if (argv[15] && argv[16] && argv[17])
         {
             std::cout << "Reading " << argv[4] << " to verify nosetip." << std::endl;
 
@@ -94,14 +119,14 @@ int main(int, char **argv)
             }
 
             Utils::saveProcessingResult(
-                argv[5],
-                argv[1],
+                argv[16],
+                filename,
                 isAGoodNoseTip,
                 executionTime,
                 verificationCloud->points[0],
                 noseTip);
         }
-        else if (strcmp(argv[3], "visualizar") == 0)
+        else if (strcmp(argv[14], "visualizar") == 0)
         {
             std::string resp;
             std::cout << "It's a good nose tip? Y/N" << std::endl;
@@ -114,8 +139,8 @@ int main(int, char **argv)
             }
 
             Utils::saveProcessingResult(
-                argv[4],
-                argv[1],
+                argv[15],
+                filename,
                 boolResp,
                 executionTime,
                 noseTip);
@@ -125,6 +150,17 @@ int main(int, char **argv)
     {
         std::string errorCause = e.what();
         std::cout << errorCause << std::endl;
-        Utils::saveErrorResult(argv[6], argv[1], errorCause);
+
+        std::string errorFile;
+        if (argv[17])
+        {
+            errorFile = argv[17];
+        }
+        else
+        {
+            errorFile = argv[16];
+        }
+
+        Utils::saveErrorResult(errorFile, argv[1], errorCause);
     }
 }

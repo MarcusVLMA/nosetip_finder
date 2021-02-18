@@ -27,7 +27,19 @@ public:
   Main(){};
   ~Main(){};
 
-  MainResponse static run(std::string filename);
+  MainResponse static run(
+      std::string filename,
+      bool flexibilizeThresholds,
+      bool flexibilizeCrop,
+      int computationRadiusOrKSize,
+      std::string computationMethod,
+      double minGaussianCurvature,
+      double shapeIndexLimit,
+      float minCropSize,
+      float maxCropSize,
+      int minPointsToContinue,
+      float removeIsolatedPointsRadius,
+      int removeIsolatedPointsThreshold);
 };
 
 #endif //NOSETIP_FINDER_MAIN_H

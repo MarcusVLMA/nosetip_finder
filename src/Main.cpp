@@ -24,7 +24,21 @@
 #include "CloudsLog.h"
 #include "Utils.h"
 
-MainResponse Main::run(std::string filename)
+// A good value for gaussianCurvatureLimit is 0.015
+// A good value for largestShapeIndexLimit is -0.85
+MainResponse Main::run(
+    std::string filename,
+    bool flexibilizeThresholds,
+    bool flexibilizeCrop,
+    int computationRadiusOrKSize,
+    std::string computationMethod,
+    double minGaussianCurvature,
+    double shapeIndexLimit,
+    float minCropSize,
+    float maxCropSize,
+    int minPointsToContinue,
+    float removeIsolatedPointsRadius,
+    int removeIsolatedPointsThreshold)
 {
   auto totalStart = std::chrono::steady_clock::now();
   CloudsLog cloudsLog;
@@ -54,7 +68,7 @@ MainResponse Main::run(std::string filename)
   CloudNormal::Ptr filteredNormalCloud(new CloudNormal);
 
   //Computating the normals
-  Computation::normalComputation(filteredCloud, "radius", 13, normalCloud);
+  Computation::normalComputation(filteredCloud, computationMethod, computationRadiusOrKSize, normalCloud);
 
   //We didn't use 'indices' vector, clearing it to re-use the variable.
   indices.clear();
@@ -74,7 +88,7 @@ MainResponse Main::run(std::string filename)
   CloudPC::Ptr principalCurvaturesCloud(new CloudPC);
 
   //Computating Principal Curvatures
-  Computation::principalCurvaturesComputation(filteredCloud, filteredNormalCloud, "radius", 13, principalCurvaturesCloud);
+  Computation::principalCurvaturesComputation(filteredCloud, filteredNormalCloud, computationMethod, computationRadiusOrKSize, principalCurvaturesCloud);
   std::vector<int> notNaNIndicesOfShapeIndexes;
   std::vector<float> shapeIndexes;
 
@@ -107,8 +121,6 @@ MainResponse Main::run(std::string filename)
 
   //Variables used to iterate and find a good cropprincipalCurvaturesComputation
   bool continueLoop = true;
-  double gaussianCurvatureLimit = 0.015; //0.015
-  double largestShapeIndexLimit = -0.85; // -0.7
 
   //Principal Curvature and XYZ clouds used to storage points AFTER filtering though Gaussian Curvature and Shape Index
   CloudPC::Ptr pcCloudAfterSIandGCfilter(new CloudPC);
@@ -125,12 +137,14 @@ MainResponse Main::run(std::string filename)
   std::vector<int> indexSearch;
   std::vector<float> squaredDistanceSearch;
 
-  float cropSize = 100;
   //Iterating to find a good crop of points
 
   //When flexing parameters, at some point, we try to get the average Z of cloud: (smallerZ + largestZ) / 2
   //This is a control variable to check if we already do this and move to the next try
   bool triedToGetAverageZ = false;
+  float cropSize = minCropSize;
+  double gaussianCurvatureLimit = minGaussianCurvature;
+  double largestShapeIndexLimit = shapeIndexLimit;
 
   int iterationCount = 0;
   while (continueLoop)
@@ -141,8 +155,13 @@ MainResponse Main::run(std::string filename)
         cloudAfterSIandGCfilter, shapeIndexAfterSIandGCfilter, pcCloudAfterSIandGCfilter);
 
     //Checking if there is enough points to continue the algorithm
-    if (cloudAfterSIandGCfilter->points.size() < 15)
+    if (cloudAfterSIandGCfilter->points.size() < minPointsToContinue)
     {
+      if (!flexibilizeThresholds)
+      {
+        throw std::runtime_error("After Shape Index and Gaussian Curvature filter, cloud doesn't have the minimum size to continue. You can set a smaller 'minPointsToContinue' or set 'flexibilizeThresholds' as 'true'.");
+      }
+
       cloudAfterSIandGCfilter->points.clear();
       pcCloudAfterSIandGCfilter->clear();
 
@@ -175,12 +194,17 @@ MainResponse Main::run(std::string filename)
     cloudsLog.add(logLabel, croppedSIandGC);
 
     //Checking if there if enough points to continue
-    if (croppedSIandGC->points.size() > 15)
+    if (croppedSIandGC->points.size() > minPointsToContinue)
     {
       continueLoop = false;
     }
     else
     {
+      if (!flexibilizeThresholds && !flexibilizeCrop)
+      {
+        throw std::runtime_error("After Crop, cloud doesn't have the minimum size to continue. You can set a smaller 'minPointsToContinue' or set 'flexibilizeThresholds' and/or 'flexibilizeCrop' as 'true'.");
+      }
+
       croppedPCSIandGC->points.clear();
       croppedSIandGC->points.clear();
 
@@ -190,50 +214,46 @@ MainResponse Main::run(std::string filename)
       indexSearch.clear();
       squaredDistanceSearch.clear();
 
-      if (gaussianCurvatureLimit > 0.008)
+      if (gaussianCurvatureLimit > 0.008 && flexibilizeThresholds)
       {
         gaussianCurvatureLimit = gaussianCurvatureLimit - 0.001;
       }
       else
       {
-        if (largestShapeIndexLimit < 1)
+        if (largestShapeIndexLimit < 1 && flexibilizeThresholds)
         {
           largestShapeIndexLimit = largestShapeIndexLimit + 0.1;
         }
         else
         {
-          pointToCropFrom.z = pointToCropFrom.z - 2;
-
-          if (pointToCropFrom.z < smallerZ)
+          if (flexibilizeCrop)
           {
-            if (cropSize == 100 && !triedToGetAverageZ)
+            pointToCropFrom.z = pointToCropFrom.z - 2;
+
+            if (pointToCropFrom.z < smallerZ)
             {
-              pointToCropFrom.z = (largestZ + smallerZ) / 2;
-              triedToGetAverageZ = true;
-            }
-            else
-            {
-              if (cropSize < 240)
+              if (cropSize == minCropSize && !triedToGetAverageZ)
               {
-                cropSize += 20;
+                pointToCropFrom.z = (largestZ + smallerZ) / 2;
+                triedToGetAverageZ = true;
               }
               else
               {
-                if (gaussianCurvatureLimit > 0.000)
+                if (cropSize < maxCropSize)
                 {
-                  gaussianCurvatureLimit = gaussianCurvatureLimit - 0.001;
-                }
-                else
-                {
-
-                  if (croppedSIandGC->points.empty())
-                  {
-                    throw std::runtime_error("Failed. croppedSIandGC is empty");
-                  }
-                  continueLoop = false;
+                  cropSize += 20;
                 }
               }
             }
+          }
+
+          if (((flexibilizeCrop && cropSize >= maxCropSize) || (!flexibilizeCrop && gaussianCurvatureLimit > 0.000)) && flexibilizeThresholds)
+          {
+            gaussianCurvatureLimit = gaussianCurvatureLimit - 0.001;
+          }
+          else if (gaussianCurvatureLimit <= 0.000)
+          {
+            continueLoop = false;
           }
         }
       }
@@ -243,13 +263,13 @@ MainResponse Main::run(std::string filename)
   CloudXYZ::Ptr cloudFinal(new CloudXYZ);
   CloudPC::Ptr cloudPCFinal(new CloudPC);
 
-  Cropper::removeIsolatedPoints(croppedSIandGC, croppedPCSIandGC, 5, 6, cloudFinal, cloudPCFinal);
+  Cropper::removeIsolatedPoints(croppedSIandGC, croppedPCSIandGC, removeIsolatedPointsRadius, removeIsolatedPointsThreshold, cloudFinal, cloudPCFinal);
 
   cloudsLog.add("5. Cloud after removing isolated points", cloudFinal);
 
   pcl::PointXYZ noseTip;
-  int chooseANoseTipThreshold = 15;
-  if (cloudFinal->points.size() < 15)
+  int chooseANoseTipThreshold = minPointsToContinue;
+  if (cloudFinal->points.size() < minPointsToContinue)
   {
     chooseANoseTipThreshold = cloudFinal->points.size();
   }
@@ -272,93 +292,5 @@ MainResponse Main::run(std::string filename)
       std::chrono::duration<double, std::milli>(totalDiff).count() // double executionTime
   };
 
-  // if (argv[2])
-  // {
-  //   NosetipFinder::saveNoseTip(noseTip, argv[2], argv[1]);
-  // }
-
-  // if (strcmp(argv[3], "visualizar") == 0)
-  // {
-  //   pcl::visualization::PCLVisualizer viewer;
-  //   for (int k = 0; k < cloudsLogEntries.size(); k++)
-  //   {
-  //     int r = rand() % 256;
-  //     int g = rand() % 256;
-  //     int b = rand() % 256;
-  //     int pointsSize = 2;
-
-  //     // Highlighting the found nosetip
-  //     if (k == cloudsLogEntries.size() - 1)
-  //     {
-  //       r = 255;
-  //       g = 255;
-  //       b = 255;
-  //       pointsSize = 10;
-  //       std::cout << cloudsLogEntries[k].cloudLabel << std::endl;
-  //     }
-
-  //     pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> cloudColor(cloudsLogEntries[k].cloud, r, g, b);
-  //     viewer.addPointCloud<pcl::PointXYZ>(cloudsLogEntries[k].cloud, cloudColor, "cloudlog-" + std::to_string(k), 0);
-  //     viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, pointsSize, "cloudlog-" + std::to_string(k));
-  //   }
-
-  //   while (!viewer.wasStopped())
-  //   {
-  //     viewer.spinOnce(100);
-  //   }
-  // }
-
-  // if (argv[4] && argv[5] && argv[6])
-  // {
-  //   std::cout << "Reading " << argv[4] << " to verify nosetip." << std::endl;
-
-  //   CloudXYZ::Ptr verificationCloud(new CloudXYZ);
-
-  //   if (pcl::io::loadPCDFile(argv[4], *verificationCloud) == -1)
-  //   {
-  //     throw std::runtime_error("Couldn't read verification file");
-  //     return (-1);
-  //   }
-
-  //   bool isAGoodNoseTip;
-
-  //   if (
-  //       NosetipFinder::itsAGoodNoseTip(noseTip, verificationCloud->points[0].x, verificationCloud->points[0].y, verificationCloud->points[0].z, 20))
-  //   {
-  //     std::cout << "It's a good nose tip" << std::endl;
-  //     isAGoodNoseTip = true;
-  //   }
-  //   else
-  //   {
-  //     std::cout << "It is not a good nose tip" << std::endl;
-  //     isAGoodNoseTip = false;
-  //   }
-
-  //   Utils::saveProcessingResult(
-  //       argv[5],
-  //       argv[1],
-  //       isAGoodNoseTip,
-  //       std::chrono::duration<double, std::milli>(totalDiff).count(),
-  //       verificationCloud->points[0],
-  //       noseTip);
-  // }
-  // else if (strcmp(argv[3], "visualizar") == 0)
-  // {
-  //   std::string resp;
-  //   std::cout << "It's a good nose tip? Y/N" << std::endl;
-  //   std::cin >> resp;
-
-  //   bool boolResp = false;
-  //   if (resp == "y" || resp == "Y")
-  //   {
-  //     boolResp = true;
-  //   }
-
-  //   Utils::saveProcessingResult(
-  //       argv[4],
-  //       argv[1],
-  //       boolResp,
-  //       std::chrono::duration<double, std::milli>(totalDiff).count(),
-  //       noseTip);
-  // }
+  return response;
 }

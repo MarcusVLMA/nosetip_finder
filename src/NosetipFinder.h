@@ -16,8 +16,6 @@ class NosetipFinder
     typedef pcl::PointCloud<pcl::PrincipalCurvatures> CloudPC;
 
 public:
-    void static scaleShapeIndexes(std::vector<float> &shapeIndexes, int thresholdMin, int thresholdMax);
-
     void static removeNonExistingIndices(CloudXYZ::Ptr &inputCloud, std::vector<int> indicesToKeep);
 
     void static removeNonExistingIndices(CloudPC::Ptr &inputCloud, std::vector<int> indicesToKeep);

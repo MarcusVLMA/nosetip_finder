@@ -1,6 +1,7 @@
 node_modules
 build
 .vscode
+package-lock.json
 
 # Compiled Object files
 **/.DS_Store

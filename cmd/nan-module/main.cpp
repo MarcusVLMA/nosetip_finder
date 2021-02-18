@@ -20,10 +20,10 @@
 
 #include <nan.h>
 
-#include "Main.h"
-#include "NosetipFinder.h"
-#include "CloudsLog.h"
-#include "Utils.h"
+#include "../../src/Main.h"
+#include "../../src/NosetipFinder.h"
+#include "../../src/CloudsLog.h"
+#include "../../src/Utils.h"
 
 v8::Local<v8::Array> parsePointCloudToV8Array(pcl::PointCloud<pcl::PointXYZ>::Ptr pointCloud)
 {
@@ -67,29 +67,64 @@ v8::Local<v8::Array> cloudsLogsEntriestoV8Array(std::vector<CloudsLogEntry> logs
 
 NAN_METHOD(FindNoseTip)
 {
-  std::string filename(*Nan::Utf8String(info[0]));
-  struct MainResponse response = Main::run(filename);
+  try
+  {
 
-  pcl::PointXYZ noseTip = response.noseTip;
-  CloudsLog cloudsLog = response.cloudsLog;
+    std::string filename(*Nan::Utf8String(info[0]));
+    bool flexibilizeThresholds = info[1]->BooleanValue();
+    bool flexibilizeCrop = info[2]->BooleanValue();
+    int computationRadiusOrKSize = info[3]->NumberValue();
+    std::string computationMethod(*Nan::Utf8String(info[4]));
+    double minGaussianCurvature = info[5]->NumberValue();
+    double shapeIndexLimit = info[6]->NumberValue();
+    float minCropSize = info[7]->NumberValue();
+    float maxCropSize = info[8]->NumberValue();
+    int minPointsToContinue = info[9]->NumberValue();
+    float removeIsolatedPointsRadius = info[10]->NumberValue();
+    int removeIsolatedPointsThreshold = info[11]->NumberValue();
 
-  v8::Local<v8::Object> noseTipV8Object = Nan::New<v8::Object>();
-  noseTipV8Object->Set(Nan::New("x").ToLocalChecked(), Nan::New<v8::Number>(noseTip.x));
-  noseTipV8Object->Set(Nan::New("y").ToLocalChecked(), Nan::New<v8::Number>(noseTip.y));
-  noseTipV8Object->Set(Nan::New("z").ToLocalChecked(), Nan::New<v8::Number>(noseTip.z));
+    struct MainResponse response = Main::run(
+        filename,
+        flexibilizeThresholds,
+        flexibilizeCrop,
+        computationRadiusOrKSize,
+        computationMethod,
+        minGaussianCurvature,
+        shapeIndexLimit,
+        minCropSize,
+        maxCropSize,
+        minPointsToContinue,
+        removeIsolatedPointsRadius,
+        removeIsolatedPointsThreshold);
 
-  v8::Local<v8::Object> moduleResponse = Nan::New<v8::Object>();
-  moduleResponse->Set(Nan::New("nosetip").ToLocalChecked(), noseTipV8Object);
-  moduleResponse->Set(Nan::New("intermediary_clouds").ToLocalChecked(), cloudsLog.toV8Array());
+    pcl::PointXYZ noseTip = response.noseTip;
+    CloudsLog cloudsLog = response.cloudsLog;
 
-  info.GetReturnValue().Set(moduleResponse);
+    v8::Local<v8::Object> noseTipV8Object = Nan::New<v8::Object>();
+    noseTipV8Object->Set(Nan::New("x").ToLocalChecked(), Nan::New<v8::Number>(noseTip.x));
+    noseTipV8Object->Set(Nan::New("y").ToLocalChecked(), Nan::New<v8::Number>(noseTip.y));
+    noseTipV8Object->Set(Nan::New("z").ToLocalChecked(), Nan::New<v8::Number>(noseTip.z));
+
+    v8::Local<v8::Object> moduleResponse = Nan::New<v8::Object>();
+    moduleResponse->Set(Nan::New("nosetip").ToLocalChecked(), noseTipV8Object);
+    moduleResponse->Set(Nan::New("intermediary_clouds").ToLocalChecked(), cloudsLogsEntriestoV8Array(cloudsLog.getLogs()));
+
+    info.GetReturnValue().Set(moduleResponse);
+  }
+  catch (std::exception &e)
+  {
+    v8::Isolate *isolate = v8::Isolate::GetCurrent();
+    isolate->ThrowException(v8::String::NewFromUtf8(isolate, e.what()));
+  }
 }
 
 using Nan::GetFunction;
 using Nan::New;
 using Nan::Set;
+using v8::Boolean;
 using v8::FunctionTemplate;
 using v8::Handle;
+using v8::Number;
 using v8::Object;
 using v8::String;
 

@@ -7,39 +7,6 @@
 #include <pcl/io/pcd_io.h>
 #include "NosetipFinder.h"
 
-void NosetipFinder::scaleShapeIndexes(std::vector<float> &shapeIndexes, int thresholdMin, int thresholdMax)
-{
-    float menor;
-    float maior;
-
-    for (int i = 0; i < shapeIndexes.size(); i++)
-    {
-        std::cout << shapeIndexes[i] << std::endl;
-        if (i == 0)
-        {
-            menor = shapeIndexes[i];
-            maior = shapeIndexes[i];
-        }
-        else
-        {
-            if (shapeIndexes[i] < menor)
-            {
-                menor = shapeIndexes[i];
-            }
-
-            if (shapeIndexes[i] > maior)
-            {
-                maior = shapeIndexes[i];
-            }
-        }
-    }
-
-    for (int i = 0; i < shapeIndexes.size(); i++)
-    {
-        shapeIndexes[i] = ((((shapeIndexes[i] - menor) / (maior - menor)) * (thresholdMax - thresholdMin)) + thresholdMin);
-    }
-}
-
 void NosetipFinder::thresholdByShapeIndex(CloudXYZ::Ptr &inputCloud, std::vector<float> shapeIndexes,
                                           float thresholdMin, float thresholdMax,
                                           CloudXYZ::Ptr &outputCloud,
@@ -94,7 +61,8 @@ void NosetipFinder::thresholdByShapeIndexAndGaussianCurvature(CloudXYZ::Ptr &inp
                                                               std::vector<float> shapeIndexes,
                                                               CloudPC::Ptr
                                                                   &inputPrincipalCurvaturesCloud,
-                                                              float thresholdShapeIndexMin, float thresholdShapeIndexMax,
+                                                              float thresholdShapeIndexMin,
+                                                              float thresholdShapeIndexMax,
                                                               float thresholdPrincipalCurvatureMin,
                                                               CloudXYZ::Ptr &outputCloud,
                                                               std::vector<float> outputShapeIndexes,

@@ -1,0 +1,17 @@
+{
+  "name": "nosetip_finder",
+  "version": "1.0.0",
+  "description": "Finding nose tips in point cloud images.",
+  "main": "index.js",
+  "scripts": {
+    "install": "cmake-js compile"
+  },
+  "author": "",
+  "license": "ISC",
+  "homepage": "https://github.com/MarcusVLMA/nosetip_finder#readme",
+  "dependencies": {
+    "bindings": "^1.5.0",
+    "cmake-js": "^6.1.0",
+    "nan": "^2.14.2"
+  }
+}

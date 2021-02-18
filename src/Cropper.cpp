@@ -152,7 +152,8 @@ void Cropper::removeIsolatedPoints(CloudXYZ::Ptr &inputCloud, float radiusSearch
 
 void Cropper::removeIsolatedPoints(CloudXYZ::Ptr &inputCloud,
                                    CloudPC::Ptr &inputPrincipalCurvatures,
-                                   float radiusSearchSize, int pointsThreshold,
+                                   float radiusSearchSize,
+                                   int pointsThreshold,
                                    CloudXYZ::Ptr &outputCloud,
                                    CloudPC::Ptr &outputPrincipalCurvaturesCloud)
 {
