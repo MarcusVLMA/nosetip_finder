@@ -13,6 +13,15 @@ typedef pcl::PointCloud<pcl::PointXYZ> CloudXYZ;
 typedef pcl::PointCloud<pcl::Normal> CloudNormal;
 typedef pcl::PointCloud<pcl::PrincipalCurvatures> CloudPC;
 
+struct PointAnalysis
+{
+    pcl::Normal normal;
+    pcl::PrincipalCurvatures principalCurvatures;
+    float shapeIndex;
+    float gaussianCurvature;
+    bool isEmpty;
+};
+
 class Utils
 {
 public:
@@ -20,6 +29,13 @@ public:
     ~Utils(){};
 
     CloudXYZ::Ptr static loadCloudFile(std::string filename);
+
+    PointAnalysis static getPointAnalysis(
+        pcl::PointXYZ point,
+        CloudXYZ::Ptr &inputCloud,
+        CloudNormal::Ptr &normalCloud,
+        CloudPC::Ptr &principalCurvaturesCloud,
+        std::vector<float> shapeIndexes);
 
     void static saveProcessingResult(
         std::string outputFilename,

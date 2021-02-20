@@ -38,7 +38,8 @@ MainResponse Main::run(
     float maxCropSize,
     int minPointsToContinue,
     float removeIsolatedPointsRadius,
-    int removeIsolatedPointsThreshold)
+    int removeIsolatedPointsThreshold,
+    int pointIndexToAnalyze)
 {
   auto totalStart = std::chrono::steady_clock::now();
   CloudsLog cloudsLog;
@@ -54,6 +55,15 @@ MainResponse Main::run(
   cloud = Utils::loadCloudFile(filename);
 
   cloudsLog.add("0. Loaded Cloud from PCD", cloud);
+
+  pcl::PointXYZ *pointToAnalyze{0};
+
+  if (pointIndexToAnalyze >= 0)
+  {
+    pcl::PointXYZ p = cloud->points[pointIndexToAnalyze];
+    pointToAnalyze = &p;
+    *pointToAnalyze = p;
+  }
 
   CloudXYZ::Ptr filteredCloud(new CloudXYZ);
 
@@ -286,11 +296,21 @@ MainResponse Main::run(
   auto totalEnd = std::chrono::steady_clock::now();
   auto totalDiff = totalEnd - totalStart;
 
-  struct MainResponse response = {
-      cloudsLog,                                                   // CloudsLog cloudsLog
-      noseTip,                                                     // pcl::PointXYZ noseTip
-      std::chrono::duration<double, std::milli>(totalDiff).count() // double executionTime
-  };
+  struct MainResponse response;
+  response.cloudsLog = cloudsLog;
+  response.noseTip = noseTip;
+  response.executionTime = std::chrono::duration<double, std::milli>(totalDiff).count();
+
+  struct PointAnalysis pa;
+  pa.isEmpty = true;
+
+  // If enters here, pa.isEmpty will be set to false.
+  if (pointIndexToAnalyze >= 0)
+  {
+    pa = Utils::getPointAnalysis(*pointToAnalyze, filteredCloud, filteredNormalCloud, principalCurvaturesCloud, shapeIndexes);
+  }
+
+  response.pointAnalysis = pa;
 
   return response;
 }

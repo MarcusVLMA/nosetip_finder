@@ -50,7 +50,8 @@ int main(int, char **argv)
             maxCropSize,
             minPointsToContinue,
             removeIsolatedPointsRadius,
-            removeIsolatedPointsThreshold);
+            removeIsolatedPointsThreshold,
+            -1); // Not using analysis of point for now
 
         pcl::PointXYZ noseTip = response.noseTip;
         std::vector<CloudsLogEntry> cloudsLogEntries = response.cloudsLog.getLogs();

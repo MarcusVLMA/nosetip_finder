@@ -37,6 +37,34 @@ CloudXYZ::Ptr Utils::loadCloudFile(std::string filename)
   return cloud;
 }
 
+PointAnalysis Utils::getPointAnalysis(pcl::PointXYZ point, CloudXYZ::Ptr &inputCloud, CloudNormal::Ptr &normalCloud, CloudPC::Ptr &principalCurvaturesCloud, std::vector<float> shapeIndexes)
+{
+  int index = -1;
+
+  for (int i = 0; i < inputCloud->points.size(); i++)
+  {
+    pcl::PointXYZ p = inputCloud->points[i];
+    if (point.x == p.x && point.y == p.y && point.z == p.z)
+    {
+      index = i;
+      break;
+    }
+  }
+
+  if (index == -1)
+  {
+    throw std::runtime_error("Could not find provided point for analysis after NaN filters. Maybe you selected a NaN point or a nonexistent index.");
+  }
+
+  pcl::Normal normal = normalCloud->points[index];
+  pcl::PrincipalCurvatures principalCurvatures = principalCurvaturesCloud->points[index];
+  float shapeIndex = shapeIndexes[index];
+  float gaussianCurvature = principalCurvatures.pc1 * principalCurvatures.pc2;
+
+  struct PointAnalysis pa = {normal, principalCurvatures, shapeIndex, gaussianCurvature, false};
+  return pa;
+}
+
 void Utils::saveProcessingResult(std::string outputFilename, std::string inputCloudFilename, bool isAGoodNoseTip, double totalMilliseconds, pcl::PointXYZ originalNoseTip, pcl::PointXYZ foundNoseTip)
 {
   std::ofstream outputFile;

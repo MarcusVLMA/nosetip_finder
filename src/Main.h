@@ -9,12 +9,14 @@
 #include <pcl/point_cloud.h>
 #include <vector>
 #include "CloudsLog.h"
+#include "Utils.h"
 
 struct MainResponse
 {
   CloudsLog cloudsLog;
   pcl::PointXYZ noseTip;
   double executionTime;
+  PointAnalysis pointAnalysis;
 };
 
 class Main
@@ -39,7 +41,8 @@ public:
       float maxCropSize,
       int minPointsToContinue,
       float removeIsolatedPointsRadius,
-      int removeIsolatedPointsThreshold);
+      int removeIsolatedPointsThreshold,
+      int pointIndexToAnalyze);
 };
 
 #endif //NOSETIP_FINDER_MAIN_H

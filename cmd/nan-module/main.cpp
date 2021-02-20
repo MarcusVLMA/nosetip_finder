@@ -82,6 +82,7 @@ NAN_METHOD(FindNoseTip)
     int minPointsToContinue = info[9]->NumberValue();
     float removeIsolatedPointsRadius = info[10]->NumberValue();
     int removeIsolatedPointsThreshold = info[11]->NumberValue();
+    int pointIndexToAnalyze = info[12]->NumberValue();
 
     struct MainResponse response = Main::run(
         filename,
@@ -95,7 +96,8 @@ NAN_METHOD(FindNoseTip)
         maxCropSize,
         minPointsToContinue,
         removeIsolatedPointsRadius,
-        removeIsolatedPointsThreshold);
+        removeIsolatedPointsThreshold,
+        pointIndexToAnalyze);
 
     pcl::PointXYZ noseTip = response.noseTip;
     CloudsLog cloudsLog = response.cloudsLog;
@@ -108,6 +110,30 @@ NAN_METHOD(FindNoseTip)
     v8::Local<v8::Object> moduleResponse = Nan::New<v8::Object>();
     moduleResponse->Set(Nan::New("nosetip").ToLocalChecked(), noseTipV8Object);
     moduleResponse->Set(Nan::New("intermediary_clouds").ToLocalChecked(), cloudsLogsEntriestoV8Array(cloudsLog.getLogs()));
+
+    if (!response.pointAnalysis.isEmpty)
+    {
+      v8::Local<v8::Object> normalV8Object = Nan::New<v8::Object>();
+      normalV8Object->Set(Nan::New("x").ToLocalChecked(), Nan::New<v8::Number>(response.pointAnalysis.normal.normal_x));
+      normalV8Object->Set(Nan::New("y").ToLocalChecked(), Nan::New<v8::Number>(response.pointAnalysis.normal.normal_y));
+      normalV8Object->Set(Nan::New("z").ToLocalChecked(), Nan::New<v8::Number>(response.pointAnalysis.normal.normal_z));
+
+      v8::Local<v8::Object> principalCurvaturesV8Object = Nan::New<v8::Object>();
+      principalCurvaturesV8Object->Set(Nan::New("k1").ToLocalChecked(), Nan::New<v8::Number>(response.pointAnalysis.principalCurvatures.pc1));
+      principalCurvaturesV8Object->Set(Nan::New("k2").ToLocalChecked(), Nan::New<v8::Number>(response.pointAnalysis.principalCurvatures.pc2));
+
+      v8::Local<v8::Object> pointAnalysisV8Object = Nan::New<v8::Object>();
+      pointAnalysisV8Object->Set(Nan::New("normal").ToLocalChecked(), normalV8Object);
+      pointAnalysisV8Object->Set(Nan::New("principal_curvatures").ToLocalChecked(), principalCurvaturesV8Object);
+      pointAnalysisV8Object->Set(Nan::New("gaussian_curvature").ToLocalChecked(), Nan::New<v8::Number>(response.pointAnalysis.gaussianCurvature));
+      pointAnalysisV8Object->Set(Nan::New("shape_index").ToLocalChecked(), Nan::New<v8::Number>(response.pointAnalysis.shapeIndex));
+
+      moduleResponse->Set(Nan::New("point_analysis").ToLocalChecked(), pointAnalysisV8Object);
+    }
+    else
+    {
+      moduleResponse->Set(Nan::New("point_analysis").ToLocalChecked(), Nan::Null());
+    }
 
     info.GetReturnValue().Set(moduleResponse);
   }
