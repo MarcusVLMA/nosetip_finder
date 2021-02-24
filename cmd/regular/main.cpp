@@ -17,9 +17,9 @@
 #include <pcl/features/principal_curvatures.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/filter.h>
-#include "Main.h"
-#include "Utils.h"
-#include "NosetipFinder.h"
+#include "../../src/Main.h"
+#include "../../src/Utils.h"
+#include "../../src/NosetipFinder.h"
 
 int main(int, char **argv)
 {
@@ -95,11 +95,11 @@ int main(int, char **argv)
 
         if (argv[15] && argv[16] && argv[17])
         {
-            std::cout << "Reading " << argv[4] << " to verify nosetip." << std::endl;
+            std::cout << "Reading " << argv[15] << " to verify nosetip." << std::endl;
 
             CloudXYZ::Ptr verificationCloud(new CloudXYZ);
 
-            if (pcl::io::loadPCDFile(argv[4], *verificationCloud) == -1)
+            if (pcl::io::loadPCDFile(argv[15], *verificationCloud) == -1)
             {
                 throw std::runtime_error("Couldn't read verification file");
                 return (-1);
