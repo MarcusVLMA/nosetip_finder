@@ -26,8 +26,20 @@ int main(int, char **argv)
     try
     {
         std::string filename = argv[1];
-        bool flexibilizeThresholds = (argv[2] == "true");
-        bool flexibilizeCrop = (argv[3] == "true");
+
+        std::string trueString = "true";
+
+        bool flexibilizeThresholds = false;
+        if (trueString.compare(argv[2]) == 0)
+        {
+            flexibilizeThresholds = true;
+        }
+
+        bool flexibilizeCrop = false;
+        if (trueString.compare(argv[3]) == 0)
+        {
+            flexibilizeCrop = true;
+        }
         int computationRadiusOrKSize = std::stoi(argv[4]);
         std::string computationMethod = argv[5];
         double minGaussianCurvature = std::stod(argv[6]);

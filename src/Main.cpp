@@ -190,6 +190,7 @@ MainResponse Main::run(
       }
       continue;
     }
+
     cloudAfterSIandGCfilter->points.push_back(pointToCropFrom);
 
     std::string logLabel = "3." + std::to_string(iterationCount) + " Cloud after SI and GC filter";
