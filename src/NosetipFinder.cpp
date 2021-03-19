@@ -96,8 +96,9 @@ void NosetipFinder::thresholdByShapeIndexAndGaussianCurvature(CloudXYZ::Ptr &inp
 }
 
 pcl::PointXYZ NosetipFinder::chooseANoseTip(CloudXYZ::Ptr inputCloud,
-                                            CloudPC::Ptr inputPrincipalCurvaturesCloud,
-                                            int thresholdPoints)
+                                            std::vector<float> shapeIndexes,
+                                            int thresholdPoints,
+                                            CloudsLog &cloudsLog)
 {
     if (thresholdPoints > inputCloud->points.size())
     {
@@ -105,9 +106,9 @@ pcl::PointXYZ NosetipFinder::chooseANoseTip(CloudXYZ::Ptr inputCloud,
         return pcl::PointXYZ();
     }
 
-    if (inputCloud->points.size() != inputPrincipalCurvaturesCloud->points.size())
+    if (inputCloud->points.size() != shapeIndexes.size())
     {
-        throw std::runtime_error("Your input cloud and input of principal curvature must have the same size");
+        throw std::runtime_error("Your input cloud and input shape indexes must have the same size");
         return pcl::PointXYZ();
     }
 
@@ -115,58 +116,58 @@ pcl::PointXYZ NosetipFinder::chooseANoseTip(CloudXYZ::Ptr inputCloud,
 
     CloudXYZ::Ptr clonedCloud(new CloudXYZ);
     CloudPC::Ptr clonedPC(new CloudPC);
+    std::vector<float> clonedSI;
 
     for (int i = 0; i < inputCloud->points.size(); i++)
     {
         clonedCloud->points.push_back(inputCloud->points[i]);
-        clonedPC->points.push_back(inputPrincipalCurvaturesCloud->points[i]);
+        clonedSI.push_back(shapeIndexes[i]);
     }
 
-    std::vector<int> largestGCIndices(thresholdPoints);
+    std::vector<int> lowestSIIndices(thresholdPoints);
     int toDelete;
 
     pcl::PointXYZ noseTip;
     pcl::PrincipalCurvatures principalCurvatureOfNoseTip;
+    float nosetipSI;
 
     for (int j = 0; j < thresholdPoints; j++)
     {
         for (int i = 0; i < clonedCloud->points.size(); i++)
         {
-            pcl::PrincipalCurvatures principalCurvatureOfIteration = inputPrincipalCurvaturesCloud->points[i];
+            float iterationSI = shapeIndexes[i];
 
             if (i == 0)
             {
                 noseTip = clonedCloud->points[0];
                 principalCurvatureOfNoseTip = clonedPC->points[0];
-                largestGCIndices[j] = 0;
+                nosetipSI = clonedSI[0];
+                lowestSIIndices[j] = 0;
             }
             else
             {
-                float noseTipGaussianCurvature = principalCurvatureOfNoseTip.pc1 * principalCurvatureOfNoseTip.pc2;
-                float iterationGaussianCurvature = principalCurvatureOfIteration.pc1 * principalCurvatureOfIteration.pc2;
-
-                if (noseTipGaussianCurvature < iterationGaussianCurvature)
+                if (iterationSI < nosetipSI)
                 {
                     noseTip = clonedCloud->points[i];
-                    principalCurvatureOfNoseTip = clonedPC->points[i];
-                    largestGCIndices[j] = i;
+                    nosetipSI = clonedSI[i];
+                    lowestSIIndices[j] = i;
                 }
             }
         }
 
-        toDelete = largestGCIndices[j];
+        toDelete = lowestSIIndices[j];
 
         for (int i = 0; i < inputCloud->points.size(); i++)
         {
-            if (inputCloud->points[i].x == clonedCloud->points[largestGCIndices[j]].x && inputCloud->points[i].y == clonedCloud->points[largestGCIndices[j]].y && inputCloud->points[i].z == clonedCloud->points[largestGCIndices[j]].z)
+            if (inputCloud->points[i].x == clonedCloud->points[lowestSIIndices[j]].x && inputCloud->points[i].y == clonedCloud->points[lowestSIIndices[j]].y && inputCloud->points[i].z == clonedCloud->points[lowestSIIndices[j]].z)
             {
-                largestGCIndices[j] = i;
+                lowestSIIndices[j] = i;
                 break;
             }
         }
 
         clonedCloud->points.erase(clonedCloud->points.begin() + toDelete);
-        clonedPC->points.erase(clonedPC->points.begin() + toDelete);
+        clonedSI.erase(clonedSI.begin() + toDelete);
     }
 
     std::vector<std::vector<int>> points_index_vector(thresholdPoints);
@@ -174,9 +175,12 @@ pcl::PointXYZ NosetipFinder::chooseANoseTip(CloudXYZ::Ptr inputCloud,
 
     kdTree.setInputCloud(inputCloud);
 
-    for (int i = 0; i < largestGCIndices.size(); i++)
+    CloudXYZ::Ptr pointsWithLowerShapeIndex(new CloudXYZ);
+
+    for (int i = 0; i < lowestSIIndices.size(); i++)
     {
-        if (kdTree.radiusSearch(inputCloud->points[largestGCIndices[i]], 15, points_index_vector[i], points_rsd_vector[i]) > 0)
+        pointsWithLowerShapeIndex->points.push_back(inputCloud->points[lowestSIIndices[i]]);
+        if (kdTree.radiusSearch(inputCloud->points[lowestSIIndices[i]], 20, points_index_vector[i], points_rsd_vector[i]) > 0)
         {
             std::cout << "Searching in the neighboorhod of the point " << i << " of largest curvature." << std::endl;
         }
@@ -187,9 +191,11 @@ pcl::PointXYZ NosetipFinder::chooseANoseTip(CloudXYZ::Ptr inputCloud,
         }
     }
 
+    cloudsLog.add("4. " + std::to_string(lowestSIIndices.size()) + " lowest shape index points", pointsWithLowerShapeIndex);
+
     int biggest_index = -1;
 
-    for (int i = 0; i < largestGCIndices.size(); i++)
+    for (int i = 0; i < lowestSIIndices.size(); i++)
     {
         if (i == 0)
         {
@@ -204,7 +210,7 @@ pcl::PointXYZ NosetipFinder::chooseANoseTip(CloudXYZ::Ptr inputCloud,
         }
     }
 
-    noseTip = inputCloud->points[largestGCIndices[biggest_index]];
+    noseTip = inputCloud->points[lowestSIIndices[biggest_index]];
 
     return noseTip;
 }

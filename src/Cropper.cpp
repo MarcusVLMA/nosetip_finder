@@ -178,3 +178,61 @@ void Cropper::removeIsolatedPoints(CloudXYZ::Ptr &inputCloud,
         pointRadiusSquaredDistance.clear();
     }
 }
+
+void Cropper::removeIsolatedPoints(CloudXYZ::Ptr &inputCloud,
+                                   std::vector<float> &inputShapeIndex,
+                                   float radiusSearchSize,
+                                   int pointsThreshold,
+                                   bool flexibilizeThresholds,
+                                   int minPointsToContinue,
+                                   CloudXYZ::Ptr &outputCloud,
+                                   std::vector<float> &outputShapeIndex,
+                                   CloudsLog &cloudsLog)
+{
+    int _pointsThreshold = pointsThreshold;
+
+    int iteratorCounter = 1;
+
+    bool continueLoop = true;
+    while (continueLoop)
+    {
+
+        for (int i = 0; i < inputCloud->points.size(); i++)
+        {
+            pcl::KdTreeFLANN<pcl::PointXYZ> kdTree;
+            kdTree.setInputCloud(inputCloud);
+
+            std::vector<int> pointIndexRadiusSearch;
+            std::vector<float> pointRadiusSquaredDistance;
+
+            if (kdTree.radiusSearch(inputCloud->points[i], radiusSearchSize, pointIndexRadiusSearch, pointRadiusSquaredDistance) > 0)
+            {
+                if (pointIndexRadiusSearch.size() >= _pointsThreshold)
+                {
+                    outputCloud->points.push_back(inputCloud->points[i]);
+                    outputShapeIndex.push_back(inputShapeIndex[i]);
+                }
+            }
+
+            pointIndexRadiusSearch.clear();
+            pointRadiusSquaredDistance.clear();
+        }
+
+        std::string logLabel = "3." + std::to_string(iteratorCounter) + " Removing isolated points (min " + std::to_string(_pointsThreshold) + ")";
+        cloudsLog.add(logLabel, outputCloud);
+
+        if (outputCloud->points.size() < minPointsToContinue && flexibilizeThresholds)
+        {
+            _pointsThreshold--;
+
+            outputCloud->points.clear();
+            outputShapeIndex.clear();
+        }
+        else
+        {
+            continueLoop = false;
+        }
+
+        iteratorCounter++;
+    }
+}

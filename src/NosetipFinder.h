@@ -8,6 +8,7 @@
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <vector>
+#include "CloudsLog.h"
 
 class NosetipFinder
 {
@@ -46,8 +47,9 @@ public:
 
     pcl::PointXYZ static chooseANoseTip(
         CloudXYZ::Ptr inputCloud,
-        CloudPC::Ptr inputPrincipalCurvaturesCloud,
-        int thresholdPoints);
+        std::vector<float> shapeIndexes,
+        int thresholdPoints,
+        CloudsLog &cloudsLog);
 
     bool static itsAGoodNoseTip(pcl::PointXYZ noseTip, float xValue, float yValue, float zValue, float maxDistance);
 
