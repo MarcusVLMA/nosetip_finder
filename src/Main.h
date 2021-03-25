@@ -42,6 +42,7 @@ public:
       int minPointsToContinue,
       float removeIsolatedPointsRadius,
       int removeIsolatedPointsThreshold,
+      int nosetipSearchRadius,
       int pointIndexToAnalyze);
 };
 

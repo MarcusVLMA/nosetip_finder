@@ -49,6 +49,7 @@ int main(int, char **argv)
         int minPointsToContinue = std::stoi(argv[10]);
         float removeIsolatedPointsRadius = std::stof(argv[11]);
         int removeIsolatedPointsThreshold = std::stoi(argv[12]);
+        int nosetipSearchRadius = std::stoi(argv[13]);
 
         struct MainResponse response = Main::run(
             filename,
@@ -63,18 +64,19 @@ int main(int, char **argv)
             minPointsToContinue,
             removeIsolatedPointsRadius,
             removeIsolatedPointsThreshold,
+            nosetipSearchRadius,
             -1); // Not using analysis of point for now
 
         pcl::PointXYZ noseTip = response.noseTip;
         std::vector<CloudsLogEntry> cloudsLogEntries = response.cloudsLog.getLogs();
         double executionTime = response.executionTime;
 
-        if (argv[13])
+        if (argv[14])
         {
-            NosetipFinder::saveNoseTip(noseTip, argv[13], filename);
+            NosetipFinder::saveNoseTip(noseTip, argv[14], filename);
         }
 
-        if (strcmp(argv[14], "visualizar") == 0)
+        if (strcmp(argv[15], "visualizar") == 0)
         {
             pcl::visualization::PCLVisualizer viewer;
             for (int k = 0; k < cloudsLogEntries.size(); k++)
@@ -105,13 +107,13 @@ int main(int, char **argv)
             }
         }
 
-        if (argv[15] && argv[16] && argv[17])
+        if (argv[16] && argv[17] && argv[18])
         {
-            std::cout << "Reading " << argv[15] << " to verify nosetip." << std::endl;
+            std::cout << "Reading " << argv[16] << " to verify nosetip." << std::endl;
 
             CloudXYZ::Ptr verificationCloud(new CloudXYZ);
 
-            if (pcl::io::loadPCDFile(argv[15], *verificationCloud) == -1)
+            if (pcl::io::loadPCDFile(argv[16], *verificationCloud) == -1)
             {
                 throw std::runtime_error("Couldn't read verification file");
                 return (-1);
@@ -132,14 +134,14 @@ int main(int, char **argv)
             }
 
             Utils::saveProcessingResult(
-                argv[16],
+                argv[17],
                 filename,
                 isAGoodNoseTip,
                 executionTime,
                 verificationCloud->points[0],
                 noseTip);
         }
-        else if (strcmp(argv[14], "visualizar") == 0)
+        else if (strcmp(argv[15], "visualizar") == 0)
         {
             std::string resp;
             std::cout << "It's a good nose tip? Y/N" << std::endl;
@@ -152,7 +154,7 @@ int main(int, char **argv)
             }
 
             Utils::saveProcessingResult(
-                argv[15],
+                argv[16],
                 filename,
                 boolResp,
                 executionTime,
@@ -165,13 +167,13 @@ int main(int, char **argv)
         std::cout << errorCause << std::endl;
 
         std::string errorFile;
-        if (argv[17])
+        if (argv[18])
         {
-            errorFile = argv[17];
+            errorFile = argv[18];
         }
         else
         {
-            errorFile = argv[16];
+            errorFile = argv[17];
         }
 
         Utils::saveErrorResult(errorFile, argv[1], errorCause);

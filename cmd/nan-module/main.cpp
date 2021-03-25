@@ -82,7 +82,8 @@ NAN_METHOD(FindNoseTip)
     int minPointsToContinue = info[9]->NumberValue();
     float removeIsolatedPointsRadius = info[10]->NumberValue();
     int removeIsolatedPointsThreshold = info[11]->NumberValue();
-    int pointIndexToAnalyze = info[12]->NumberValue();
+    int nosetipSearchRadius = info[12]->NumberValue();
+    int pointIndexToAnalyze = info[13]->NumberValue();
 
     struct MainResponse response = Main::run(
         filename,
@@ -97,6 +98,7 @@ NAN_METHOD(FindNoseTip)
         minPointsToContinue,
         removeIsolatedPointsRadius,
         removeIsolatedPointsThreshold,
+        nosetipSearchRadius,
         pointIndexToAnalyze);
 
     pcl::PointXYZ noseTip = response.noseTip;

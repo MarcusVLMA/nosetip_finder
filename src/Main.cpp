@@ -40,6 +40,7 @@ MainResponse Main::run(
     int minPointsToContinue,
     float removeIsolatedPointsRadius,
     int removeIsolatedPointsThreshold,
+    int nosetipSearchRadius,
     int pointIndexToAnalyze)
 {
   auto totalStart = std::chrono::steady_clock::now();
@@ -295,7 +296,7 @@ MainResponse Main::run(
     chooseANoseTipThreshold = cloudFinal->points.size();
   }
 
-  noseTip = NosetipFinder::chooseANoseTip(cloudFinal, shapeIndexFinal, chooseANoseTipThreshold, cloudsLog);
+  noseTip = NosetipFinder::chooseANoseTip(cloudFinal, nosetipSearchRadius, cloudsLog);
   std::cout << noseTip << " choosed as nose tip!" << std::endl;
 
   CloudXYZ::Ptr noseTipCloud(new CloudXYZ);

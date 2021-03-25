@@ -47,8 +47,7 @@ public:
 
     pcl::PointXYZ static chooseANoseTip(
         CloudXYZ::Ptr inputCloud,
-        std::vector<float> shapeIndexes,
-        int thresholdPoints,
+        int searchRadius,
         CloudsLog &cloudsLog);
 
     bool static itsAGoodNoseTip(pcl::PointXYZ noseTip, float xValue, float yValue, float zValue, float maxDistance);
