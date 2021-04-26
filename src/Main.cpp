@@ -290,11 +290,6 @@ MainResponse Main::run(
   Cropper::removeIsolatedPoints(croppedSIandGC, shapeIndexes, removeIsolatedPointsRadius, removeIsolatedPointsThreshold, flexibilizeThresholds, minPointsToContinue, cloudFinal, shapeIndexFinal, cloudsLog);
 
   pcl::PointXYZ noseTip;
-  int chooseANoseTipThreshold = minPointsToContinue;
-  if (cloudFinal->points.size() < minPointsToContinue && flexibilizeThresholds)
-  {
-    chooseANoseTipThreshold = cloudFinal->points.size();
-  }
 
   noseTip = NosetipFinder::chooseANoseTip(cloudFinal, nosetipSearchRadius, cloudsLog);
   std::cout << noseTip << " choosed as nose tip!" << std::endl;
@@ -302,7 +297,7 @@ MainResponse Main::run(
   CloudXYZ::Ptr noseTipCloud(new CloudXYZ);
   noseTipCloud->points.push_back(noseTip);
 
-  std::string noseTipLabel = "5. Nosetip (Searched in " + std::to_string(chooseANoseTipThreshold) + " points)";
+  std::string noseTipLabel = "5. Nosetip (Searched in " + std::to_string(cloudFinal->points.size()) + " points)";
 
   std::vector<CloudsLogEntry> cloudsLogEntries = cloudsLog.getLogs();
   std::cout << "Amount of clouds in log: " << cloudsLogEntries.size() << std::endl;
